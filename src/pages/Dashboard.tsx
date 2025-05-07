@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Tags, PlusCircle, ExternalLink } from 'lucide-react';
 
@@ -9,7 +10,7 @@ const PropertyCard = ({ property }: { property: any }) => {
           <img 
             src={property.image} 
             alt={property.title} 
-            className="w-full h-40 object-cover"
+            className="w-full h-40 object-cover responsive-img"
           />
         )}
         {property.label && (
@@ -28,28 +29,28 @@ const PropertyCard = ({ property }: { property: any }) => {
       <div className="p-4">
         <h3 className="font-semibold text-lg text-gray-800">{property.title}</h3>
         <p className="text-gray-600 text-sm">{property.address}</p>
-        <div className="flex mt-2 text-sm text-gray-600">
-          <div className="mr-4">
+        <div className="flex flex-wrap mt-2 text-sm text-gray-600">
+          <div className="mr-4 mb-1">
             <span>House</span>
           </div>
-          <div className="mr-4">
+          <div className="mr-4 mb-1">
             <span>{property.beds} Beds</span>
           </div>
-          <div>
+          <div className="mb-1">
             <span>{property.baths} Baths</span>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto mb-1">
             <span>{property.sqft} Sq.Ft.</span>
           </div>
         </div>
-        <div className="flex mt-2 border-t pt-2 text-sm">
-          <div className="text-gray-500">
+        <div className="flex flex-wrap mt-2 border-t pt-2 text-sm">
+          <div className="text-gray-500 mr-2 mb-1">
             ${property.cashFlow}/mo Cash Flow
           </div>
-          <div className="ml-auto text-blue-500">
+          <div className="text-blue-500 mr-2 mb-1">
             {property.capRate}% Cap Rate
           </div>
-          <div className="ml-3 text-blue-500">
+          <div className="text-blue-500 mb-1">
             {property.coc}% COC
           </div>
         </div>
@@ -66,7 +67,7 @@ const PropertyCard = ({ property }: { property: any }) => {
 
 const NewPropertyCard = () => {
   return (
-    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-full min-h-[300px] text-center hover:bg-gray-100 transition-colors cursor-pointer">
+    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-full min-h-[250px] text-center hover:bg-gray-100 transition-colors cursor-pointer touch-target">
       <div className="bg-gray-200 rounded-full p-4 mb-4">
         <PlusCircle className="h-8 w-8 text-gray-500" />
       </div>
@@ -98,7 +99,7 @@ const Dashboard: React.FC = () => {
   ]);
   
   return (
-    <div className="pt-20 pb-16">
+    <div className="pt-16 md:pt-20 pb-16">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -107,41 +108,41 @@ const Dashboard: React.FC = () => {
               Properties you plan to buy and hold for long-term cash flow, including short-term rentals.
             </p>
           </div>
-          <div className="flex mt-4 md:mt-0">
-            <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded mr-2 hover:bg-gray-50">
-              <span className="hidden md:inline">Compare</span>
+          <div className="flex mt-4 md:mt-0 w-full md:w-auto">
+            <button className="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded mr-2 hover:bg-gray-50 touch-target w-1/2 md:w-auto">
+              <span>Compare</span>
             </button>
-            <button className="bg-primary-500 text-white px-4 py-2 rounded hover:bg-primary-600 flex items-center">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Property
+            <button className="bg-primary-500 text-white px-3 py-2 rounded hover:bg-primary-600 flex items-center justify-center touch-target w-1/2 md:w-auto">
+              <PlusCircle className="h-4 w-4 mr-1 md:mr-2" />
+              <span>Add Property</span>
             </button>
           </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex">
-            <button className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm flex items-center">
+          <div className="flex w-full md:w-auto mb-2 md:mb-0">
+            <button className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm flex items-center touch-target">
               <Tags className="h-3 w-3 mr-1" />
               Tags
             </button>
           </div>
-          <div className="relative grow md:max-w-md">
+          <div className="relative grow md:max-w-md w-full">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
             </div>
             <input 
               type="search" 
-              className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" 
+              className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm touch-target" 
               placeholder="Search properties..." 
             />
           </div>
-          <div className="flex items-center ml-auto">
-            <button className="text-blue-600 mr-4 text-sm hover:text-blue-800">
+          <div className="flex items-center ml-auto flex-wrap">
+            <button className="text-blue-600 mr-4 text-sm hover:text-blue-800 touch-target">
               Export
             </button>
             <div className="flex items-center">
               <label className="text-sm mr-2 text-gray-600">Sort by:</label>
-              <select className="text-sm border-none bg-transparent text-gray-800 focus:outline-none">
+              <select className="text-sm border-none bg-transparent text-gray-800 focus:outline-none touch-target">
                 <option>Name</option>
                 <option>Price</option>
                 <option>Date Added</option>
@@ -150,15 +151,15 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {properties.map(property => (
             <PropertyCard key={property.id} property={property} />
           ))}
           <NewPropertyCard />
         </div>
         
-        <div className="mt-16 text-center">
-          <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800">
+        <div className="mt-12 md:mt-16 text-center">
+          <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800 touch-target">
             Learn how to analyze investment properties with DealCheck
             <ExternalLink className="ml-1 h-4 w-4" />
           </a>

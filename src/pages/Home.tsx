@@ -11,7 +11,7 @@ import CallToAction from '../components/CallToAction';
 
 function Home() {
   return (
-    <main>
+    <main className="overflow-x-hidden">
       <Hero />
       <PropertyAnalysis />
       <FeatureSection />
