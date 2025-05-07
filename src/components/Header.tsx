@@ -25,7 +25,7 @@ const Header: React.FC = () => {
 
   return (
     <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-md py-2' : 'bg-white/95 py-4'
+      scrolled ? 'bg-white shadow-md py-2' : 'bg-white/95 backdrop-blur-md py-4'
     }`}>
       <div className="container flex items-center justify-between">
         <Link 
@@ -33,7 +33,9 @@ const Header: React.FC = () => {
           className="flex items-center space-x-2 relative z-10"
           aria-label="IncomePlus Home"
         >
-          <BarChart2 className="h-8 w-8 text-primary-500" />
+          <div className="bg-primary-500 text-white p-1.5 rounded">
+            <BarChart2 className="h-6 w-6" />
+          </div>
           <span className="font-bold text-xl text-primary-700">IncomePlus</span>
         </Link>
 
@@ -68,7 +70,7 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Link
             to="/auth"
-            className="hidden md:flex items-center space-x-1 btn btn-primary shadow-sm hover:shadow-md transition-all duration-200"
+            className="hidden md:flex items-center space-x-1 btn btn-primary shadow-md hover:shadow-lg transition-all duration-200"
           >
             <span>Get Started Free</span>
             <ArrowRight className="w-4 h-4 ml-1" />
@@ -104,7 +106,7 @@ const Header: React.FC = () => {
               to={item.path}
               className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
                 location.pathname === item.path 
-                  ? 'bg-primary-50 text-primary-600' 
+                  ? 'bg-primary-50 text-primary-600 font-medium' 
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
