@@ -1,0 +1,171 @@
+import React, { useState } from 'react';
+import { Search, Tags, PlusCircle, ExternalLink } from 'lucide-react';
+
+const PropertyCard = ({ property }: { property: any }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      <div className="relative">
+        {property.image && (
+          <img 
+            src={property.image} 
+            alt={property.title} 
+            className="w-full h-40 object-cover"
+          />
+        )}
+        {property.label && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs uppercase font-semibold px-2 py-1 rounded">
+            {property.label}
+          </div>
+        )}
+        {property.status && (
+          <div className="absolute bottom-2 left-2 bg-green-500 rounded-full p-1">
+            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-lg text-gray-800">{property.title}</h3>
+        <p className="text-gray-600 text-sm">{property.address}</p>
+        <div className="flex mt-2 text-sm text-gray-600">
+          <div className="mr-4">
+            <span>House</span>
+          </div>
+          <div className="mr-4">
+            <span>{property.beds} Beds</span>
+          </div>
+          <div>
+            <span>{property.baths} Baths</span>
+          </div>
+          <div className="ml-auto">
+            <span>{property.sqft} Sq.Ft.</span>
+          </div>
+        </div>
+        <div className="flex mt-2 border-t pt-2 text-sm">
+          <div className="text-gray-500">
+            ${property.cashFlow}/mo Cash Flow
+          </div>
+          <div className="ml-auto text-blue-500">
+            {property.capRate}% Cap Rate
+          </div>
+          <div className="ml-3 text-blue-500">
+            {property.coc}% COC
+          </div>
+        </div>
+        <div className="mt-2">
+          <div className="font-semibold text-lg text-blue-600">
+            ${property.price.toLocaleString()}
+          </div>
+          <div className="text-xs text-gray-500">Purchase Price</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const NewPropertyCard = () => {
+  return (
+    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-full min-h-[300px] text-center hover:bg-gray-100 transition-colors cursor-pointer">
+      <div className="bg-gray-200 rounded-full p-4 mb-4">
+        <PlusCircle className="h-8 w-8 text-gray-500" />
+      </div>
+      <h3 className="font-medium text-lg text-gray-700">Add a New Rental Property</h3>
+      <p className="text-gray-500 text-sm mt-2 max-w-xs">
+        Click here to analyze a new rental property or copy an existing one.
+      </p>
+    </div>
+  );
+};
+
+const Dashboard: React.FC = () => {
+  const [properties] = useState<any[]>([
+    {
+      id: 1,
+      title: "Example: Rental Property",
+      address: "2629 Bonnybrook Dr SW, Atlanta, GA 30311",
+      image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+      beds: 3,
+      baths: 2,
+      sqft: "1,050",
+      cashFlow: 211,
+      capRate: "7.2",
+      coc: "8.6",
+      price: 105000,
+      label: "SAMPLE",
+      status: true
+    }
+  ]);
+  
+  return (
+    <div className="pt-20 pb-16">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-primary-700 mb-2">Rental Properties</h1>
+            <p className="text-gray-600">
+              Properties you plan to buy and hold for long-term cash flow, including short-term rentals.
+            </p>
+          </div>
+          <div className="flex mt-4 md:mt-0">
+            <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded mr-2 hover:bg-gray-50">
+              <span className="hidden md:inline">Compare</span>
+            </button>
+            <button className="bg-primary-500 text-white px-4 py-2 rounded hover:bg-primary-600 flex items-center">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Property
+            </button>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex">
+            <button className="bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm flex items-center">
+              <Tags className="h-3 w-3 mr-1" />
+              Tags
+            </button>
+          </div>
+          <div className="relative grow md:max-w-md">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input 
+              type="search" 
+              className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm" 
+              placeholder="Search properties..." 
+            />
+          </div>
+          <div className="flex items-center ml-auto">
+            <button className="text-blue-600 mr-4 text-sm hover:text-blue-800">
+              Export
+            </button>
+            <div className="flex items-center">
+              <label className="text-sm mr-2 text-gray-600">Sort by:</label>
+              <select className="text-sm border-none bg-transparent text-gray-800 focus:outline-none">
+                <option>Name</option>
+                <option>Price</option>
+                <option>Date Added</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {properties.map(property => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
+          <NewPropertyCard />
+        </div>
+        
+        <div className="mt-16 text-center">
+          <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800">
+            Learn how to analyze investment properties with DealCheck
+            <ExternalLink className="ml-1 h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
