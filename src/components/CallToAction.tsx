@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { ArrowRight, Shield, Clock, BarChart } from 'lucide-react';
@@ -9,6 +8,28 @@ const CallToAction: React.FC = () => {
     triggerOnce: true,
     threshold: 0.1,
   });
+  
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate form submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitted(true);
+      setEmail('');
+      // Reset the submitted state after 3 seconds
+      setTimeout(() => setSubmitted(false), 3000);
+    }, 1000);
+  };
+
+  const handleScheduleDemo = () => {
+    window.open('https://calendly.com', '_blank');
+  };
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -66,26 +87,48 @@ const CallToAction: React.FC = () => {
                 <h3 className="text-white text-xl font-semibold mb-2">Sign up for IncomePlus</h3>
                 <p className="text-blue-100 mb-4">Get full access to all our analytics tools</p>
                 
-                <form className="space-y-4">
-                  <div>
-                    <input 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      className="w-full px-4 py-3 rounded-lg bg-white/90 border border-white/50 focus:outline-none focus:ring-2 focus:ring-white"
-                    />
+                {submitted ? (
+                  <div className="text-center py-4 bg-green-400 rounded-lg">
+                    <p className="text-white font-medium">Thanks! We'll be in touch soon.</p>
                   </div>
-                  <button className="btn bg-white text-primary-600 hover:bg-gray-100 transition-all w-full flex justify-center items-center gap-2 shadow-lg">
-                    <span>Get Started Free</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
+                ) : (
+                  <form className="space-y-4" onSubmit={handleSubmit}>
+                    <div>
+                      <input 
+                        type="email" 
+                        placeholder="Enter your email" 
+                        className="w-full px-4 py-3 rounded-lg bg-white/90 border border-white/50 focus:outline-none focus:ring-2 focus:ring-white"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      className="btn bg-white text-primary-600 hover:bg-gray-100 transition-all w-full flex justify-center items-center gap-2 shadow-lg disabled:opacity-70"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span>Submitting...</span>
+                      ) : (
+                        <>
+                          <span>Get Started Free</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
                 <p className="text-xs text-blue-100 mt-4 text-center">
                   By signing up, you agree to our Terms and Privacy Policy
                 </p>
               </div>
               
               <div className="text-center">
-                <button className="btn btn-secondary bg-transparent text-white border-white hover:bg-white/10 inline-flex items-center">
+                <button 
+                  className="btn btn-secondary bg-transparent text-white border-white hover:bg-white/10 inline-flex items-center"
+                  onClick={handleScheduleDemo}
+                >
                   Schedule Demo
                 </button>
               </div>
