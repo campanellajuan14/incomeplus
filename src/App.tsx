@@ -8,6 +8,7 @@ import Pricing from './pages/Pricing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import PropertySheet from './pages/PropertySheet';
+import PropertyUpload from './pages/PropertyUpload';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Protected Route component that redirects to login if not authenticated
@@ -45,6 +46,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PropertySheet />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/properties/upload" 
+        element={
+          <ProtectedRoute>
+            <PropertyUpload />
           </ProtectedRoute>
         } 
       />
