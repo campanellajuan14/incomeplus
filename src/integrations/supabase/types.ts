@@ -9,6 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      properties: {
+        Row: {
+          address: string
+          bathrooms: number
+          bedrooms: number
+          caprate: number
+          cashflow: number
+          city: string
+          cocreturn: number
+          created_at: string
+          id: string
+          price: number
+          sqft: number
+          state: string
+          user_id: string
+          yearbuilt: number
+          zipcode: string
+        }
+        Insert: {
+          address: string
+          bathrooms: number
+          bedrooms: number
+          caprate: number
+          cashflow: number
+          city: string
+          cocreturn: number
+          created_at?: string
+          id?: string
+          price: number
+          sqft: number
+          state: string
+          user_id: string
+          yearbuilt: number
+          zipcode: string
+        }
+        Update: {
+          address?: string
+          bathrooms?: number
+          bedrooms?: number
+          caprate?: number
+          cashflow?: number
+          city?: string
+          cocreturn?: number
+          created_at?: string
+          id?: string
+          price?: number
+          sqft?: number
+          state?: string
+          user_id?: string
+          yearbuilt?: number
+          zipcode?: string
+        }
+        Relationships: []
+      }
       todos: {
         Row: {
           id: number
