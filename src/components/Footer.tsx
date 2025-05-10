@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { BarChart2, Facebook, Twitter, Instagram, Linkedin, ChevronRight } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, ChevronRight } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -7,9 +8,12 @@ const Footer: React.FC = () => {
       <div className="container">
         <div className="grid md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <BarChart2 className="h-8 w-8 text-primary-400" />
-              <span className="font-bold text-xl">IncomePlus</span>
+            <div className="flex items-center mb-4">
+              <img 
+                src="/lovable-uploads/d63f3e54-8fc1-4eed-bbd0-a2fde47ccb2a.png" 
+                alt="IncomePlus Logo" 
+                className="h-10" 
+              />
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
               Real estate investment analysis software that empowers investors to make data-driven decisions.
