@@ -52,28 +52,47 @@ const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-10">
-          {[
-            { path: '/', label: 'Home' },
-            { path: '/features', label: 'Features' },
-            { path: '/pricing', label: 'Pricing' },
-            ...(user ? [
+          {/* Show different navigation items based on authentication status */}
+          {user ? (
+            // Show only Dashboard and Properties Sheet when logged in
+            [
               { path: '/dashboard', label: 'Dashboard' },
               { path: '/properties', label: 'Properties Sheet' }
-            ] : [])
-          ].map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`font-medium hover:text-primary-500 transition-colors duration-200 text-gray-700 relative group ${
-                location.pathname === item.path ? 'text-primary-500' : ''
-              }`}
-            >
-              {item.label}
-              <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full ${
-                location.pathname === item.path ? 'w-full' : ''
-              }`}></span>
-            </Link>
-          ))}
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`font-medium hover:text-primary-500 transition-colors duration-200 text-gray-700 relative group ${
+                  location.pathname === item.path ? 'text-primary-500' : ''
+                }`}
+              >
+                {item.label}
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full ${
+                  location.pathname === item.path ? 'w-full' : ''
+                }`}></span>
+              </Link>
+            ))
+          ) : (
+            // Show Home, Features and Pricing when not logged in
+            [
+              { path: '/', label: 'Home' },
+              { path: '/features', label: 'Features' },
+              { path: '/pricing', label: 'Pricing' }
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`font-medium hover:text-primary-500 transition-colors duration-200 text-gray-700 relative group ${
+                  location.pathname === item.path ? 'text-primary-500' : ''
+                }`}
+              >
+                {item.label}
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full ${
+                  location.pathname === item.path ? 'w-full' : ''
+                }`}></span>
+              </Link>
+            ))
+          )}
         </nav>
 
         <div className="flex items-center space-x-3">
@@ -152,27 +171,45 @@ const Header: React.FC = () => {
         isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
       }`}>
         <div className="container py-4 space-y-4">
-          {[
-            { path: '/', label: 'Home' },
-            { path: '/features', label: 'Features' },
-            { path: '/pricing', label: 'Pricing' },
-            ...(user ? [
+          {/* Show different navigation items for mobile based on authentication status */}
+          {user ? (
+            // Show only Dashboard and Properties Sheet when logged in (mobile)
+            [
               { path: '/dashboard', label: 'Dashboard' },
               { path: '/properties', label: 'Properties Sheet' }
-            ] : [])
-          ].map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
-                location.pathname === item.path 
-                  ? 'bg-primary-50 text-primary-600 font-medium' 
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
+                  location.pathname === item.path 
+                    ? 'bg-primary-50 text-primary-600 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))
+          ) : (
+            // Show Home, Features and Pricing when not logged in (mobile)
+            [
+              { path: '/', label: 'Home' },
+              { path: '/features', label: 'Features' },
+              { path: '/pricing', label: 'Pricing' }
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
+                  location.pathname === item.path 
+                    ? 'bg-primary-50 text-primary-600 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))
+          )}
           
           {user ? (
             <button
