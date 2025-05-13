@@ -8,7 +8,6 @@ import Calculator from '../components/Calculator';
 import Testimonials from '../components/Testimonials';
 import Statistics from '../components/Statistics';
 import Benefits from '../components/Benefits';
-import CallToAction from '../components/CallToAction';
 
 function Home() {
   // Animation variants for staggered animation
@@ -93,13 +92,6 @@ function Home() {
         viewport={{ once: true }}
       >
         <Testimonials />
-      </motion.div>
-      
-      <motion.div 
-        variants={itemVariants}
-        viewport={{ once: true }}
-      >
-        <CallToAction />
       </motion.div>
     </motion.main>
   );

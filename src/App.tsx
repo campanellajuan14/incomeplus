@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -10,6 +9,9 @@ import Dashboard from './pages/Dashboard';
 import PropertySheet from './pages/PropertySheet';
 import PropertyUpload from './pages/PropertyUpload';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ScrollIndicator from './components/ScrollIndicator';
+import ScrollToTop from './components/ScrollToTop';
+import SmoothScroll from './components/SmoothScroll';
 
 // Protected Route component that redirects to login if not authenticated
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -108,11 +110,15 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
-          <Header />
-          <AppRoutes />
-          <Footer />
-        </div>
+        <SmoothScroll offset={80}>
+          <div className="min-h-screen bg-gray-50">
+            <ScrollIndicator color="#3b82f6" height={3} position="top" />
+            <Header />
+            <AppRoutes />
+            <Footer />
+            <ScrollToTop size="md" bottom={30} right={30} showAfter={400} />
+          </div>
+        </SmoothScroll>
       </AuthProvider>
     </Router>
   );
