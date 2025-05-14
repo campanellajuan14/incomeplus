@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
@@ -52,12 +53,12 @@ const Header: React.FC = () => {
 
   return (
     <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-lg py-1 xs:py-2' : 'bg-white/90 backdrop-blur-md py-2 xs:py-3 sm:py-4'
+      scrolled ? 'bg-white shadow-md py-1 xs:py-2' : 'bg-white/95 backdrop-blur-md py-2 xs:py-3 sm:py-4'
     }`}>
       <div className="container flex items-center justify-between">
         <Link 
           to="/" 
-          className="flex items-center relative z-10 transition-transform duration-200 hover:scale-105"
+          className="flex items-center relative z-10"
           aria-label="IncomePlus Home"
         >
           <img 
@@ -68,7 +69,7 @@ const Header: React.FC = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
+        <nav className="hidden md:flex items-center space-x-6 lg:space-x-10">
           {/* Show different navigation items based on authentication status */}
           {user ? (
             // Show only Dashboard and Properties Sheet when logged in
@@ -79,13 +80,13 @@ const Header: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`font-medium transition-colors duration-200 text-gray-700 relative group py-1 ${
-                  location.pathname === item.path ? 'text-primary-600 font-semibold' : ''
+                className={`font-medium hover:text-primary-500 transition-colors duration-200 text-gray-700 relative group ${
+                  location.pathname === item.path ? 'text-primary-500' : ''
                 }`}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary-500 transition-all duration-300 rounded-full ${
-                  location.pathname === item.path ? 'w-full' : 'w-0 group-hover:w-full'
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full ${
+                  location.pathname === item.path ? 'w-full' : ''
                 }`}></span>
               </Link>
             ))
@@ -99,67 +100,56 @@ const Header: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`font-medium transition-colors duration-200 text-gray-700 relative group py-1 ${
-                  location.pathname === item.path ? 'text-primary-600 font-semibold' : ''
+                className={`font-medium hover:text-primary-500 transition-colors duration-200 text-gray-700 relative group ${
+                  location.pathname === item.path ? 'text-primary-500' : ''
                 }`}
               >
                 {item.label}
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary-500 transition-all duration-300 rounded-full ${
-                  location.pathname === item.path ? 'w-full' : 'w-0 group-hover:w-full'
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full ${
+                  location.pathname === item.path ? 'w-full' : ''
                 }`}></span>
               </Link>
             ))
           )}
         </nav>
 
-        <div className="flex items-center space-x-3 sm:space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {user ? (
             <div className="relative" ref={userMenuRef}>
               <button 
                 onClick={() => setShowUserMenu(!showUserMenu)} 
-                className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 rounded-full transition-all duration-200 hover:bg-primary-50 p-1"
+                className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full"
                 aria-expanded={showUserMenu}
                 aria-haspopup="true"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 transition-transform duration-200 hover:scale-105">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
                   <UserCircle className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <span className="hidden md:inline-block font-medium text-gray-800">
+                <span className="hidden md:inline-block font-medium">
                   {userName}
-                </span>
-                <span className="hidden md:block ml-1 transition-transform duration-200" style={{ transform: showUserMenu ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
                 </span>
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-20 transform origin-top-right transition-all duration-200 animate-fade-in border border-gray-100">
-                  <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                    <p className="text-sm font-medium text-gray-900">{userName}</p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                  </div>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 animate-fade-in">
                   <Link
                     to="/dashboard"
-                    className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" /> Dashboard
+                    <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
                   </Link>
                   <Link
                     to="/properties"
-                    className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    <FileSpreadsheet className="h-4 w-4 mr-3 text-gray-500" /> Properties Sheet
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Properties Sheet
                   </Link>
-                  <div className="border-t border-gray-100 mt-1 pt-1">
-                    <button
-                      onClick={handleSignOut}
-                      className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
-                    >
-                      <LogOut className="h-4 w-4 mr-3" /> Sign out
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" /> Sign out
+                  </button>
                 </div>
               )}
             </div>
@@ -167,17 +157,16 @@ const Header: React.FC = () => {
             <>
               <Link
                 to="/auth"
-                className="hidden md:flex items-center space-x-1 btn btn-primary shadow-md hover:shadow-lg transition-all duration-300 text-sm lg:text-base py-2.5 px-4 lg:px-5 rounded-full bg-primary-500 text-white hover:bg-primary-600 hover:scale-105 transform"
+                className="hidden md:flex items-center space-x-1 btn btn-primary shadow-md hover:shadow-lg transition-all duration-200 text-sm lg:text-base py-2 px-3 lg:px-4 rounded-lg bg-primary-500 text-white hover:bg-primary-600"
               >
                 <span>Get Started Free</span>
-                <ArrowRight className="w-4 h-4 ml-1 animate-pulse-subtle" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
               <Link
                 to="/auth"
-                className="hidden md:flex font-medium text-gray-700 hover:text-primary-500 transition-colors duration-200 relative group"
+                className="hidden md:flex font-medium text-gray-700 hover:text-primary-500 transition-colors duration-200"
               >
                 Sign In
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full rounded-full"></span>
               </Link>
             </>
           )}
@@ -185,13 +174,13 @@ const Header: React.FC = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 hover:scale-105"
+            className="md:hidden p-1.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50"
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
           >
             {isOpen ? (
-              <X className="h-5 w-5 sm:h-6 sm:w-6 text-primary-500" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             ) : (
               <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
             )}
@@ -203,19 +192,12 @@ const Header: React.FC = () => {
       <div 
         id="mobile-menu"
         ref={menuRef}
-        className={`md:hidden fixed top-[calc(100%)] left-0 w-full bg-white shadow-xl transform transition-all duration-300 ease-in-out max-h-[calc(100vh-80px)] overflow-y-auto ${
-          isOpen ? 'translate-y-0 opacity-100 visible' : 'translate-y-4 opacity-0 invisible'
+        className={`md:hidden fixed top-[calc(100%)] left-0 w-full bg-white shadow-lg transform transition-all duration-300 ease-in-out max-h-[calc(100vh-80px)] overflow-y-auto ${
+          isOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-4 opacity-0 invisible'
         }`}
         aria-hidden={!isOpen}
       >
-        <div className="container py-4 space-y-2">
-          {user && (
-            <div className="px-4 py-3 mb-2 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-900">{userName}</p>
-              <p className="text-sm text-gray-500 truncate">{user.email}</p>
-            </div>
-          )}
-        
+        <div className="container py-4 space-y-4">
           {/* Show different navigation items for mobile based on authentication status */}
           {user ? (
             // Show only Dashboard and Properties Sheet when logged in (mobile)
@@ -226,13 +208,13 @@ const Header: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-4 py-3.5 rounded-lg transition-all duration-200 text-base ${
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors duration-200 text-base ${
                   location.pathname === item.path 
-                    ? 'bg-primary-100 text-primary-600 font-medium' 
-                    : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
+                    ? 'bg-primary-50 text-primary-600 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                {item.icon && <item.icon className={`h-5 w-5 mr-3 ${location.pathname === item.path ? 'text-primary-600' : 'text-gray-500'}`} />}
+                {item.icon && <item.icon className="h-5 w-5 mr-3" />}
                 {item.label}
               </Link>
             ))
@@ -246,10 +228,10 @@ const Header: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block px-4 py-3.5 rounded-lg transition-all duration-200 text-base ${
+                className={`block px-4 py-3 rounded-lg transition-colors duration-200 text-base ${
                   location.pathname === item.path 
-                    ? 'bg-primary-100 text-primary-600 font-medium' 
-                    : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
+                    ? 'bg-primary-50 text-primary-600 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {item.label}
@@ -257,12 +239,10 @@ const Header: React.FC = () => {
             ))
           )}
           
-          <div className="border-t border-gray-100 my-2 pt-2"></div>
-          
           {user ? (
             <button
               onClick={handleSignOut}
-              className="flex items-center w-full px-4 py-3.5 text-base text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+              className="flex items-center w-full px-4 py-3 text-base text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200"
             >
               <LogOut className="h-5 w-5 mr-3" /> Sign out
             </button>
@@ -270,19 +250,17 @@ const Header: React.FC = () => {
             <>
               <Link
                 to="/auth"
-                className="block px-4 py-3.5 text-base text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200 hover:translate-x-1"
+                className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200"
               >
                 Sign In
               </Link>
-              <div className="px-4 py-2">
-                <Link
-                  to="/auth"
-                  className="flex items-center justify-center space-x-1 py-3.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-all duration-200 w-full"
-                >
-                  <span>Get Started Free</span>
-                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-                </Link>
-              </div>
+              <Link
+                to="/auth"
+                className="flex items-center justify-center space-x-1 mx-4 py-3 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors duration-200"
+              >
+                <span>Get Started Free</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
             </>
           )}
         </div>
