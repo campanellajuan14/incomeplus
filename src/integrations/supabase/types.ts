@@ -12,54 +12,105 @@ export type Database = {
       properties: {
         Row: {
           address: string
-          bathrooms: number
-          bedrooms: number
-          caprate: number
-          cashflow: number
+          agent_email: string
+          agent_name: string
+          agent_phone: string
+          amortization_period: number
           city: string
-          cocreturn: number
           created_at: string
+          down_payment_amount: number
+          down_payment_type: string
+          gas: number | null
+          hydro: number | null
           id: string
-          price: number
-          sqft: number
-          state: string
+          images: Json | null
+          income_type: string
+          insurance: number | null
+          maintenance: number | null
+          management_fees: number | null
+          miscellaneous: number | null
+          mortgage_rate: number
+          number_of_units: number
+          postal_code: string
+          property_description: string | null
+          property_taxes: number | null
+          property_title: string
+          province: string
+          purchase_price: number
+          tenancy_type: string
+          units: Json
+          updated_at: string
           user_id: string
-          yearbuilt: number
-          zipcode: string
+          waste_management: number | null
+          water: number | null
         }
         Insert: {
           address: string
-          bathrooms: number
-          bedrooms: number
-          caprate: number
-          cashflow: number
+          agent_email: string
+          agent_name: string
+          agent_phone: string
+          amortization_period: number
           city: string
-          cocreturn: number
           created_at?: string
+          down_payment_amount: number
+          down_payment_type: string
+          gas?: number | null
+          hydro?: number | null
           id?: string
-          price: number
-          sqft: number
-          state: string
+          images?: Json | null
+          income_type: string
+          insurance?: number | null
+          maintenance?: number | null
+          management_fees?: number | null
+          miscellaneous?: number | null
+          mortgage_rate: number
+          number_of_units: number
+          postal_code: string
+          property_description?: string | null
+          property_taxes?: number | null
+          property_title: string
+          province: string
+          purchase_price: number
+          tenancy_type: string
+          units?: Json
+          updated_at?: string
           user_id: string
-          yearbuilt: number
-          zipcode: string
+          waste_management?: number | null
+          water?: number | null
         }
         Update: {
           address?: string
-          bathrooms?: number
-          bedrooms?: number
-          caprate?: number
-          cashflow?: number
+          agent_email?: string
+          agent_name?: string
+          agent_phone?: string
+          amortization_period?: number
           city?: string
-          cocreturn?: number
           created_at?: string
+          down_payment_amount?: number
+          down_payment_type?: string
+          gas?: number | null
+          hydro?: number | null
           id?: string
-          price?: number
-          sqft?: number
-          state?: string
+          images?: Json | null
+          income_type?: string
+          insurance?: number | null
+          maintenance?: number | null
+          management_fees?: number | null
+          miscellaneous?: number | null
+          mortgage_rate?: number
+          number_of_units?: number
+          postal_code?: string
+          property_description?: string | null
+          property_taxes?: number | null
+          property_title?: string
+          province?: string
+          purchase_price?: number
+          tenancy_type?: string
+          units?: Json
+          updated_at?: string
           user_id?: string
-          yearbuilt?: number
-          zipcode?: string
+          waste_management?: number | null
+          water?: number | null
         }
         Relationships: []
       }
@@ -92,7 +143,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validate_units_structure: {
+        Args: Record<PropertyKey, never> | { units_json: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
