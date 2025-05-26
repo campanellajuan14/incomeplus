@@ -186,11 +186,15 @@ const PropertyUpload: React.FC = () => {
     const uploadedUrls: string[] = [];
     
     try {
+      console.log('Starting image uploads to bucket: property_images');
+      
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
         const filePath = `${user!.id}/${fileName}`;
+        
+        console.log(`Uploading file ${i + 1}/${imageFiles.length}: ${file.name} to ${filePath}`);
         
         // Upload to Supabase Storage
         const { data, error } = await supabase.storage
@@ -201,15 +205,19 @@ const PropertyUpload: React.FC = () => {
           });
         
         if (error) {
-          throw error;
+          console.error('Storage upload error:', error);
+          throw new Error(`Failed to upload ${file.name}: ${error.message}`);
         }
         
         if (data) {
+          console.log('Upload successful:', data);
+          
           // Get public URL
           const { data: urlData } = supabase.storage
             .from('property_images')
             .getPublicUrl(data.path);
           
+          console.log('Public URL generated:', urlData.publicUrl);
           uploadedUrls.push(urlData.publicUrl);
           
           // Update progress
@@ -220,6 +228,7 @@ const PropertyUpload: React.FC = () => {
         }
       }
       
+      console.log('All uploads completed. URLs:', uploadedUrls);
       return uploadedUrls;
     } catch (err: any) {
       console.error('Error uploading images:', err);
@@ -238,6 +247,8 @@ const PropertyUpload: React.FC = () => {
       setError('You must be logged in to add properties');
       return;
     }
+    
+    console.log('Form submission started. User:', user.id);
     
     // Validation
     if (property.property_description.length > 2000) {
@@ -290,7 +301,7 @@ const PropertyUpload: React.FC = () => {
       
       if (supabaseError) {
         console.error('Supabase error:', supabaseError);
-        throw supabaseError;
+        throw new Error(`Database error: ${supabaseError.message}`);
       }
       
       console.log('Property inserted successfully:', data);
@@ -336,6 +347,16 @@ const PropertyUpload: React.FC = () => {
           </div>
         )}
         
+        {/* Debug Info (only show when not in production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
+            <div><strong>Debug Info:</strong></div>
+            <div>User ID: {user?.id || 'Not logged in'}</div>
+            <div>Selected Images: {imageFiles.length}</div>
+            <div>Form Valid: {property.property_title && property.address && imageFiles.length > 0 ? 'Yes' : 'No'}</div>
+          </div>
+        )}
+        
         {/* Property Form */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -370,6 +391,8 @@ const PropertyUpload: React.FC = () => {
                     name="purchase_price"
                     value={property.purchase_price || ''}
                     onChange={handleChange}
+                    min="1"
+                    step="1000"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -456,6 +479,8 @@ const PropertyUpload: React.FC = () => {
                     name="number_of_units"
                     value={property.number_of_units || ''}
                     onChange={handleChange}
+                    min="1"
+                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -574,6 +599,8 @@ const PropertyUpload: React.FC = () => {
                         type="number"
                         value={unit.rentAmount || ''}
                         onChange={(e) => handleUnitChange(unit.id, 'rentAmount', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="50"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                         required
                       />
@@ -620,6 +647,8 @@ const PropertyUpload: React.FC = () => {
                           type="number"
                           value={unit.projectedRent || ''}
                           onChange={(e) => handleUnitChange(unit.id, 'projectedRent', parseFloat(e.target.value) || 0)}
+                          min="0"
+                          step="50"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                           required
                         />
@@ -645,6 +674,8 @@ const PropertyUpload: React.FC = () => {
                     name="property_taxes"
                     value={property.property_taxes || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="100"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -659,6 +690,8 @@ const PropertyUpload: React.FC = () => {
                     name="insurance"
                     value={property.insurance || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="50"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -673,6 +706,8 @@ const PropertyUpload: React.FC = () => {
                     name="hydro"
                     value={property.hydro || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -687,6 +722,8 @@ const PropertyUpload: React.FC = () => {
                     name="gas"
                     value={property.gas || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -701,6 +738,8 @@ const PropertyUpload: React.FC = () => {
                     name="water"
                     value={property.water || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -715,6 +754,8 @@ const PropertyUpload: React.FC = () => {
                     name="waste_management"
                     value={property.waste_management || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -729,6 +770,8 @@ const PropertyUpload: React.FC = () => {
                     name="maintenance"
                     value={property.maintenance || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="50"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -743,6 +786,8 @@ const PropertyUpload: React.FC = () => {
                     name="management_fees"
                     value={property.management_fees || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -757,6 +802,8 @@ const PropertyUpload: React.FC = () => {
                     name="miscellaneous"
                     value={property.miscellaneous || ''}
                     onChange={handleChange}
+                    min="0"
+                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -795,6 +842,7 @@ const PropertyUpload: React.FC = () => {
                     name="down_payment_amount"
                     value={property.down_payment_amount || ''}
                     onChange={handleChange}
+                    min="0"
                     max={property.down_payment_type === 'Percent' ? "100" : undefined}
                     step={property.down_payment_type === 'Percent' ? "0.1" : "1000"}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
@@ -812,7 +860,9 @@ const PropertyUpload: React.FC = () => {
                     name="amortization_period"
                     value={property.amortization_period || ''}
                     onChange={handleChange}
+                    min="1"
                     max="40"
+                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -828,7 +878,9 @@ const PropertyUpload: React.FC = () => {
                     name="mortgage_rate"
                     value={property.mortgage_rate || ''}
                     onChange={handleChange}
+                    min="0"
                     max="20"
+                    step="0.1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />

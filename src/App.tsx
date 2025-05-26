@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -8,6 +9,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import PropertySheet from './pages/PropertySheet';
 import PropertyUpload from './pages/PropertyUpload';
+import PropertyDetail from './pages/PropertyDetail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ScrollIndicator from './components/ScrollIndicator';
 import ScrollToTop from './components/ScrollToTop';
@@ -99,6 +101,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PropertyUpload />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/properties/:id" 
+        element={
+          <ProtectedRoute>
+            <PropertyDetail />
           </ProtectedRoute>
         } 
       />
