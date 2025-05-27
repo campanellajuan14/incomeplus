@@ -4,8 +4,50 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 
+type Unit = {
+  id: string;
+  unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
+  rentAmount: number;
+  rentCategory: 'Market Value' | 'Under Market Value';
+  vacancyStatus: 'Occupied' | 'Vacant';
+  projectedRent?: number;
+};
+
+type Property = {
+  id: string;
+  property_title: string;
+  address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  purchase_price: number;
+  number_of_units: number;
+  property_description: string;
+  income_type: 'Estimated' | 'Actual' | 'Mixed';
+  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
+  units: Unit[];
+  property_taxes: number;
+  insurance: number;
+  hydro: number;
+  gas: number;
+  water: number;
+  waste_management: number;
+  maintenance: number;
+  management_fees: number;
+  miscellaneous: number;
+  down_payment_type: 'Percent' | 'Fixed';
+  down_payment_amount: number;
+  amortization_period: number;
+  mortgage_rate: number;
+  images: string[];
+  agent_name: string;
+  agent_email: string;
+  agent_phone: string;
+  created_at: string;
+};
+
 interface EnhancedPropertyCardProps {
-  property: any;
+  property: Property;
 }
 
 const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property }) => {
@@ -118,8 +160,8 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
         <div className="flex items-center text-sm text-gray-600 mb-3">
           <Users className="h-3 w-3 mr-1" />
           <span className="mr-4">{property.number_of_units} Units</span>
-          <span className="mr-4">{property.units?.filter((u: any) => u.vacancyStatus === 'Occupied').length || 0} Occupied</span>
-          <span>{property.units?.filter((u: any) => u.vacancyStatus === 'Vacant').length || 0} Vacant</span>
+          <span className="mr-4">{property.units?.filter((u: Unit) => u.vacancyStatus === 'Occupied').length || 0} Occupied</span>
+          <span>{property.units?.filter((u: Unit) => u.vacancyStatus === 'Vacant').length || 0} Vacant</span>
         </div>
 
         {/* Financial Metrics */}
