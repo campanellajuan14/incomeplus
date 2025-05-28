@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { PropertyFilters, defaultFilters } from '../types/filters';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
@@ -11,12 +10,24 @@ export const usePropertySearch = (properties: any[]) => {
     if (!properties.length) return [];
 
     return properties.filter(property => {
-      // Convert filters to mortgage params for calculations
-      const mortgageParams: MortgageParams = {
+      // Check if mortgage filters are applied
+      const hasMortgageFilters = filters.mortgageRate !== undefined || 
+                                filters.amortizationPeriod !== undefined || 
+                                (filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined) ||
+                                filters.downPaymentValue !== undefined;
+
+      // Use property-specific parameters if no mortgage filters are applied, otherwise use filter values
+      const mortgageParams: MortgageParams = hasMortgageFilters ? {
         mortgageRate: filters.mortgageRate || 5.5,
         amortizationPeriod: filters.amortizationPeriod || 25,
         downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
         downPaymentValue: filters.downPaymentValue || 20,
+        purchasePrice: property.purchase_price
+      } : {
+        mortgageRate: property.mortgage_rate || 4.0,
+        amortizationPeriod: property.amortization_period || 25,
+        downPaymentType: property.down_payment_type || 'Percent',
+        downPaymentValue: property.down_payment_amount || 20,
         purchasePrice: property.purchase_price
       };
 
@@ -66,11 +77,24 @@ export const usePropertySearch = (properties: any[]) => {
 
   const propertiesWithMetrics = useMemo(() => {
     return filteredProperties.map(property => {
-      const mortgageParams: MortgageParams = {
+      // Check if mortgage filters are applied
+      const hasMortgageFilters = filters.mortgageRate !== undefined || 
+                                filters.amortizationPeriod !== undefined || 
+                                (filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined) ||
+                                filters.downPaymentValue !== undefined;
+
+      // Use property-specific parameters if no mortgage filters are applied, otherwise use filter values
+      const mortgageParams: MortgageParams = hasMortgageFilters ? {
         mortgageRate: filters.mortgageRate || 5.5,
         amortizationPeriod: filters.amortizationPeriod || 25,
         downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
         downPaymentValue: filters.downPaymentValue || 20,
+        purchasePrice: property.purchase_price
+      } : {
+        mortgageRate: property.mortgage_rate || 4.0,
+        amortizationPeriod: property.amortization_period || 25,
+        downPaymentType: property.down_payment_type || 'Percent',
+        downPaymentValue: property.down_payment_amount || 20,
         purchasePrice: property.purchase_price
       };
 

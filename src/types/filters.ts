@@ -1,4 +1,3 @@
-
 export interface PropertyFilters {
   // Mortgage Parameters
   mortgageRate?: number;
@@ -31,10 +30,7 @@ export interface PropertyFilters {
 }
 
 export const defaultFilters: PropertyFilters = {
-  mortgageRate: 5.5,
-  amortizationPeriod: 25,
-  downPaymentType: 'Percent',
-  downPaymentValue: 20,
+  // Remove default mortgage parameters to show property-specific values initially
   incomeType: 'All',
   tenancyType: 'All',
   rentCategory: 'All',
