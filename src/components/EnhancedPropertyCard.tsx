@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
+import { PropertyFilters } from '../types/filters';
 
 type Unit = {
   id: string;
@@ -48,11 +49,13 @@ type Property = {
 interface EnhancedPropertyCardProps {
   property: Property;
   dynamicMortgageParams?: MortgageParams; // New optional prop for dynamic calculations
+  currentFilters?: PropertyFilters; // Add current filters to preserve all search criteria
 }
 
 const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ 
   property, 
-  dynamicMortgageParams 
+  dynamicMortgageParams,
+  currentFilters
 }) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -91,7 +94,25 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   };
 
   const handleCardClick = () => {
-    navigate(`/properties/${property.id}`);
+    // If we have current filters, pass them all as query parameters
+    if (currentFilters) {
+      const searchParams = new URLSearchParams();
+      
+      // Add all current filter values to URL parameters
+      Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '' && value !== 'All') {
+          searchParams.set(key, value.toString());
+        }
+      });
+      
+      if (searchParams.toString()) {
+        navigate(`/properties/${property.id}?${searchParams.toString()}`);
+      } else {
+        navigate(`/properties/${property.id}`);
+      }
+    } else {
+      navigate(`/properties/${property.id}`);
+    }
   };
 
   return (
