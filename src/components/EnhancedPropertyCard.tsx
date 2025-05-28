@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
+import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 
 type Unit = {
   id: string;
@@ -48,15 +47,19 @@ type Property = {
 
 interface EnhancedPropertyCardProps {
   property: Property;
+  dynamicMortgageParams?: MortgageParams; // New optional prop for dynamic calculations
 }
 
-const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property }) => {
+const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ 
+  property, 
+  dynamicMortgageParams 
+}) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = property.images || [];
 
-  // Use the exact same mortgage parameters as the property details
-  const mortgageParams: MortgageParams = {
+  // Use dynamic mortgage parameters if provided, otherwise fall back to property defaults
+  const mortgageParams: MortgageParams = dynamicMortgageParams || {
     mortgageRate: property.mortgage_rate || 4.0,
     amortizationPeriod: property.amortization_period || 25,
     downPaymentType: property.down_payment_type || 'Percent',
@@ -64,7 +67,13 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
     purchasePrice: property.purchase_price
   };
 
+  // Calculate metrics using the mortgage parameters
   const metrics = calculatePropertyMetrics(property, mortgageParams);
+  
+  // Calculate dynamic cash flow using current filter inputs
+  const dynamicCashFlow = dynamicMortgageParams 
+    ? calculateDynamicCashFlow(property, dynamicMortgageParams)
+    : metrics.monthlyCashFlow;
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -164,10 +173,10 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
           <span>{property.units?.filter((u: Unit) => u.vacancyStatus === 'Vacant').length || 0} Vacant</span>
         </div>
 
-        {/* Financial Metrics */}
+        {/* Financial Metrics - Updated to use dynamic cash flow */}
         <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-          <div className={`${metrics?.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            <div className="font-medium">${Math.round(metrics?.monthlyCashFlow || 0).toLocaleString()}/mo</div>
+          <div className={`${dynamicCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="font-medium">${Math.round(dynamicCashFlow || 0).toLocaleString()}/mo</div>
             <div className="text-xs text-gray-500">Cash Flow</div>
           </div>
           <div className="text-blue-600">

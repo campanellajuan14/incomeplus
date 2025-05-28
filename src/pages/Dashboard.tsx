@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
@@ -7,6 +6,7 @@ import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
 import { usePropertySearch } from '../hooks/usePropertySearch';
+import { MortgageParams } from '../utils/mortgageCalculations';
 
 type Unit = {
   id: string;
@@ -148,6 +148,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Create dynamic mortgage parameters from current filters
+  const dynamicMortgageParams: MortgageParams = {
+    mortgageRate: filters.mortgageRate || 5.5,
+    amortizationPeriod: filters.amortizationPeriod || 25,
+    downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
+    downPaymentValue: filters.downPaymentValue || 20,
+    purchasePrice: 0 // This will be set per property
+  };
+
   // Determine which properties to display
   const displayProperties = showAllProperties ? filteredProperties : filteredProperties.slice(0, 6);
   
@@ -220,7 +229,14 @@ const Dashboard: React.FC = () => {
             <>
               {!showAllProperties && <NewPropertyCard />}
               {displayProperties.map(property => (
-                <EnhancedPropertyCard key={property.id} property={property} />
+                <EnhancedPropertyCard 
+                  key={property.id} 
+                  property={property} 
+                  dynamicMortgageParams={{
+                    ...dynamicMortgageParams,
+                    purchasePrice: property.purchase_price
+                  }}
+                />
               ))}
             </>
           )}

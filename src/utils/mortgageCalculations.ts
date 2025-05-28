@@ -1,4 +1,3 @@
-
 export interface MortgageParams {
   mortgageRate: number; // Annual rate as percentage
   amortizationPeriod: number; // Years
@@ -44,6 +43,46 @@ export const calculateDownPayment = (
     return (purchasePrice * downPaymentValue) / 100;
   }
   return downPaymentValue;
+};
+
+// New reusable function for dynamic cash flow calculation
+export const calculateDynamicCashFlow = (
+  property: any,
+  dynamicMortgageParams: MortgageParams
+): number => {
+  // Calculate total monthly rent
+  const totalRent = property.units?.reduce((total: number, unit: any) => {
+    const rent = unit.vacancyStatus === 'Vacant' ? (unit.projectedRent || 0) : unit.rentAmount;
+    return total + rent;
+  }, 0) || 0;
+
+  // Calculate total annual operating expenses
+  const annualOperatingExpenses = (property.property_taxes || 0) + (property.insurance || 0) + 
+                                 (property.hydro || 0) + (property.gas || 0) + (property.water || 0) + 
+                                 (property.waste_management || 0) + (property.maintenance || 0) + 
+                                 (property.management_fees || 0) + (property.miscellaneous || 0);
+
+  // Convert annual expenses to monthly
+  const monthlyExpenses = annualOperatingExpenses / 12;
+
+  // Calculate mortgage details using dynamic parameters
+  const downPaymentAmount = calculateDownPayment(
+    dynamicMortgageParams.purchasePrice,
+    dynamicMortgageParams.downPaymentType,
+    dynamicMortgageParams.downPaymentValue
+  );
+  
+  const loanAmount = dynamicMortgageParams.purchasePrice - downPaymentAmount;
+  const monthlyPayment = calculateMortgagePayment(
+    loanAmount,
+    dynamicMortgageParams.mortgageRate,
+    dynamicMortgageParams.amortizationPeriod
+  );
+
+  // Calculate monthly cash flow
+  const monthlyCashFlow = totalRent - monthlyExpenses - monthlyPayment;
+
+  return monthlyCashFlow;
 };
 
 export const calculatePropertyMetrics = (
