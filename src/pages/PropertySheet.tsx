@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Download, File, X, Check, AlertCircle, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -57,6 +57,7 @@ const PropertySheet: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     // Redirect if not logged in
@@ -66,7 +67,10 @@ const PropertySheet: React.FC = () => {
     }
 
     // Fetch properties from Supabase
-    fetchProperties();
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchProperties();
+    }
   }, [user, navigate]);
 
   const fetchProperties = async () => {
