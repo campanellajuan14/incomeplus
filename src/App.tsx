@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -128,19 +128,34 @@ function AppRoutes() {
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  const isDashboardPage = location.pathname === '/dashboard';
+
+  return (
+    <SmoothScroll offset={80}>
+      <div className="min-h-screen bg-gray-50">
+        <ScrollIndicator color="#3b82f6" height={3} position="top" />
+        <Header />
+        <AppRoutes />
+        <Footer />
+        <ScrollToTop 
+          size="md" 
+          bottom={30} 
+          right={30} 
+          showAfter={400} 
+          showProgress={!isDashboardPage}
+        />
+      </div>
+    </SmoothScroll>
+  );
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <SmoothScroll offset={80}>
-          <div className="min-h-screen bg-gray-50">
-            <ScrollIndicator color="#3b82f6" height={3} position="top" />
-            <Header />
-            <AppRoutes />
-            <Footer />
-            <ScrollToTop size="md" bottom={30} right={30} showAfter={400} />
-          </div>
-        </SmoothScroll>
+        <AppContent />
       </AuthProvider>
     </Router>
   );
