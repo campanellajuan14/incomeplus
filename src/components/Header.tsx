@@ -62,7 +62,7 @@ const Header: React.FC = () => {
           aria-label="IncomePlus Home"
         >
           <img 
-            src="/lovable-uploads/d63f3e54-8fc1-4eed-bbd0-a2fde47ccb2a.png" 
+            src="/logo.png" 
             alt="IncomePlus Logo" 
             className="h-8 sm:h-10"
           />
