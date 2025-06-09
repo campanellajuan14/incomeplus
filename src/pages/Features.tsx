@@ -33,7 +33,6 @@ const Features = () => {
         </div>
       </section>
 
-       Property Analysis Section */}
       <section className="py-16 bg-white">
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">

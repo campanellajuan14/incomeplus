@@ -1,90 +1,134 @@
 
-import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronDown, CheckCircle } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle } from 'lucide-react';
 
-const Hero: React.FC = () => {
+const Hero = () => {
   return (
-    <section className="relative pt-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-800 z-0"></div>
-      <div className="absolute inset-0 opacity-30 bg-[url('https://images.pexels.com/photos/7821486/pexels-photo-7821486.jpeg?auto=compress&cs=tinysrgb&w=800')] bg-cover bg-center mix-blend-overlay"></div>
-      <div className="container relative z-10 pt-20 pb-24 md:pb-32 text-white">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+    <section className="relative min-h-screen flex items-center bg-gradient-to-br from-primary-600 to-primary-900 overflow-hidden">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/30 blur-3xl"></div>
+        <div className="absolute top-1/3 right-1/3 w-64 h-64 rounded-full bg-secondary-400/40 blur-3xl"></div>
+        <div className="absolute bottom-20 right-0 w-80 h-80 rounded-full bg-accent-400/30 blur-3xl"></div>
+      </div>
+
+      <div className="container relative z-10 pt-16 pb-24">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-xl"
+            transition={{ duration: 0.7 }}
+            className="text-center lg:text-left"
           >
-            <span className="inline-block px-4 py-1.5 mb-6 text-sm font-medium bg-white/20 backdrop-blur-sm rounded-full text-white">
-              Trusted by 10,000+ property investors
-            </span>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Make smarter real estate investments with precise analytics.
-            </h1>
-            <p className="text-lg md:text-xl mb-8 text-blue-50">
-              Analyze any investment property in seconds. Our software gives you accurate insights to know if a property will be profitable before you buy.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="#get-started"
-                className="btn bg-white text-primary-600 hover:bg-gray-100 hover:text-primary-700 transition-all flex items-center justify-center gap-2 shadow-lg"
-              >
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center px-4 py-2 mb-6 bg-white/10 backdrop-blur-sm rounded-full border border-white/20"
+            >
+              <span className="px-3 py-1 text-xs font-medium bg-white/20 rounded-full">New</span>
+              <span className="text-sm font-medium text-white ml-2">Trusted by 10,000+ property investors</span>
+            </motion.span>
+
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-4xl md:text-5xl xl:text-6xl font-bold mb-8 leading-tight text-white"
+            >
+              Make <span className="text-accent-300">smarter</span> real estate investments with precise analytics
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-lg md:text-xl mb-10 text-blue-100 max-w-xl mx-auto lg:mx-0"
+            >
+              Our platform gives you the tools to analyze any investment property in seconds with accurate insights to maximize your returns.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="flex flex-wrap gap-4 justify-center lg:justify-start"
+            >
+              <button className="btn bg-white text-primary-600 hover:bg-white/90 shadow-xl shadow-primary-900/20 flex items-center justify-center gap-2 group">
                 <span>Get Started Free</span>
-                <ArrowRight className="w-5 h-5" />
-              </a>
-              <button className="btn btn-secondary bg-transparent text-white border-white hover:bg-white/10 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2" fill="currentColor">
-                  <path d="M8 5.14v14l11-7-11-7z"></path>
-                </svg>
-                Watch Demo
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-            </div>
+              <button className="btn bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center gap-2">
+                <Play className="w-5 h-5" />
+                <span>Watch Demo</span>
+              </button>
+            </motion.div>
             
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2 text-accent-300" />
-                <span className="text-blue-50">Advanced ROI and cash flow analysis</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2 text-accent-300" />
-                <span className="text-blue-50">Detailed property comparison</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2 text-accent-300" />
-                <span className="text-blue-50">Long-term projection forecasting</span>
-              </div>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.8 }}
+              className="mt-12 grid grid-cols-3 gap-6 max-w-xl mx-auto lg:mx-0"
+            >
+              {[
+                { text: "Advanced ROI Analysis", subtext: "Complete cash flow reports" },
+                { text: "Market Comparison", subtext: "Compare multiple properties" },
+                { text: "Forecast Models", subtext: "Long-term projections" }
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col items-center lg:items-start">
+                  <div className="flex items-center mb-2">
+                    <CheckCircle className="w-5 h-5 mr-2 text-accent-300" />
+                    <span className="text-blue-50 font-medium whitespace-nowrap">{item.text}</span>
+                  </div>
+                  <p className="text-sm text-blue-100/70">{item.subtext}</p>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="hidden lg:block relative"
           >
-            <div className="absolute -z-10 w-[200px] h-[200px] bg-primary-400/30 rounded-full blur-3xl top-10 -right-10"></div>
-            <div className="relative z-10 drop-shadow-2xl">
-              <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/20">
+            <div className="relative z-10 bg-gradient-to-tr from-white/10 to-white/20 backdrop-blur-xl rounded-2xl p-3 shadow-2xl border border-white/20">
+              <div className="aspect-[4/3] overflow-hidden rounded-xl">
                 <img
-                  src="https://images.pexels.com/photos/6801642/pexels-photo-6801642.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="Dashboard"
-                  className="rounded-lg shadow-xl"
+                  src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1800&q=80"
+                  alt="Street view of multi-unit townhomes in a calm tree-lined neighborhood"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <img
-                src="https://images.pexels.com/photos/6801874/pexels-photo-6801874.jpeg?auto=compress&cs=tinysrgb&w=400"
-                alt="Mobile App"
-                className="absolute -bottom-10 -left-10 w-56 rounded-lg shadow-xl border-4 border-white/90"
-              />
             </div>
+            
+            <div className="absolute -bottom-8 -left-12 p-4 bg-white rounded-lg shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold text-lg">
+                  24%
+                </div>
+                <div>
+                  <p className="text-sm font-medium">ROI Increase</p>
+                  <p className="text-xs text-gray-500">Year over Year</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="absolute top-1/4 -right-8 p-3 bg-white rounded-lg shadow-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium">Market trending up</span>
+              </div>
+            </div>
+            
+            <div className="absolute -z-10 inset-0 bg-gradient-to-r from-secondary-300/20 to-accent-300/20 rounded-full blur-3xl transform translate-x-10 translate-y-10 opacity-60"></div>
           </motion.div>
         </div>
       </div>
-      <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
-        <button className="flex flex-col items-center text-sm font-medium">
-          <span className="mb-1">Scroll to explore</span>
-          <ChevronDown className="w-5 h-5" />
-        </button>
+      
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
       </div>
     </section>
   );

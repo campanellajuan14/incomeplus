@@ -11,15 +11,15 @@ import CallToAction from '../components/CallToAction';
 
 function Home() {
   return (
-    <main className="overflow-x-hidden">
+    <main className="overflow-hidden">
       <Hero />
       <PropertyAnalysis />
       <FeatureSection />
       <FinancialAnalytics />
-      <Calculator />
       <Statistics />
-      <Testimonials />
       <Benefits />
+      <Testimonials />
+      <Calculator />
       <CallToAction />
     </main>
   );

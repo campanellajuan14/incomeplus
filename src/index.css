@@ -39,19 +39,19 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 rounded-lg font-medium transition-all duration-200 text-center min-h-[44px] min-w-[44px];
+    @apply inline-flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-all duration-200 text-center min-h-[50px] min-w-[50px];
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600;
+    @apply bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/20;
   }
 
   .btn-secondary {
-    @apply bg-white text-primary-500 hover:bg-gray-50 border border-gray-200;
+    @apply bg-white text-primary-500 hover:bg-gray-50 border border-gray-200 shadow-lg shadow-black/5;
   }
 
   .section {
-    @apply py-10 md:py-16 lg:py-24;
+    @apply py-16 md:py-24 lg:py-32;
   }
 
   .section-title {
@@ -63,11 +63,16 @@
   }
 
   .feature-card {
-    @apply p-4 md:p-6 rounded-xl bg-white shadow-md hover:shadow-lg transition-shadow duration-300;
+    @apply p-6 md:p-8 rounded-xl bg-white shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-gray-100;
   }
 
   .gradient-bg {
     @apply bg-gradient-to-br from-primary-500 to-primary-700 text-white;
+  }
+
+  /* Glass Card */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl;
   }
 
   /* Responsive touch target classes */
@@ -83,6 +88,31 @@
   .mobile-menu-open {
     @apply translate-y-0;
   }
+  
+  /* Highlight text */
+  .highlight {
+    @apply relative inline-block;
+  }
+  
+  .highlight::after {
+    @apply content-[''] absolute bottom-0 left-0 w-full h-[30%] bg-accent-300/30 -z-10;
+  }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Card hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    @apply bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-500 bg-[length:400%_400%];
+    animation: gradient 8s ease infinite;
+  }
 }
 
 /* Responsive images */
@@ -96,4 +126,43 @@
     -webkit-overflow-scrolling: touch;
     @apply overflow-x-auto pb-4;
   }
+}
+
+/* Animated underline effect for links */
+.link-underline {
+  @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary-500 after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100;
+}
+
+/* Gradient animations */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulse animation for elements */
+.pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Card background gradients */
+.gradient-card-primary {
+  @apply bg-gradient-to-br from-primary-50 to-primary-100;
+}
+
+.gradient-card-secondary {
+  @apply bg-gradient-to-br from-secondary-50 to-secondary-100;
+}
+
+.gradient-card-accent {
+  @apply bg-gradient-to-br from-accent-50 to-accent-100;
 }
