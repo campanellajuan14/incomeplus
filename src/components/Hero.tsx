@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, CheckCircle, X, ChevronDown } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle, X, ChevronDown, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
@@ -98,34 +98,65 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-wrap gap-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start mb-8"
             >
-              <Link 
-                to="/auth" 
-                className="btn px-8 py-4 bg-accent-400 hover:bg-accent-500 text-white rounded-full font-medium shadow-lg shadow-accent-500/20 flex items-center justify-center gap-2 group transition-all duration-300 hover:translate-y-[-2px]"
-              >
-                <span>Get Started Free</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link 
+                  to="/auth" 
+                  className="btn px-8 py-4 bg-accent-400 hover:bg-accent-500 text-white rounded-full font-medium shadow-lg shadow-accent-500/20 flex items-center justify-center gap-2 group transition-all duration-300 hover:translate-y-[-2px] min-w-[200px]"
+                >
+                  <span>Get Started Free</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                
+                <Link 
+                  to="/pricing" 
+                  className="btn px-8 py-4 bg-secondary-500 hover:bg-secondary-600 text-white rounded-full font-medium shadow-lg shadow-secondary-500/20 flex items-center justify-center gap-2 group transition-all duration-300 hover:translate-y-[-2px] min-w-[200px]"
+                >
+                  <Upload className="w-5 h-5 group-hover:translate-y-[-2px] transition-transform" />
+                  <span>Submit a Listing</span>
+                </Link>
+              </div>
               
-              <button 
-                className="btn px-8 py-4 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full font-medium flex items-center justify-center gap-2 group transition-all duration-300 hover:translate-y-[-2px]"
-                onClick={handleWatchDemo}
-                aria-label="Watch Demo Video"
-              >
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute inset-0 bg-white/30 rounded-full animate-ping opacity-75" style={{ animationDuration: '2s' }}></div>
-                  <Play className="w-5 h-5 relative z-10" />
-                </div>
-                <span>Watch Demo</span>
-              </button>
+              <div className="flex justify-center lg:justify-start">
+                <button 
+                  className="relative w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 group flex-shrink-0"
+                  onClick={handleWatchDemo}
+                  aria-label="Watch Demo Video"
+                >
+                  <div className="absolute inset-0 animate-spin" style={{ animationDuration: '20s' }}>
+                    <svg className="w-full h-full" viewBox="0 0 100 100">
+                      <defs>
+                        <path
+                          id="circle-path"
+                          d="M 50, 50 m -38, 0 a 38,38 0 1,0 76,0 a 38,38 0 1,0 -76,0"
+                        />
+                      </defs>
+                      <text className="text-[12px] fill-white/70 font-medium tracking-wider">
+                        <textPath href="#circle-path" startOffset="0%">
+                          REAL ESTATE • WATCH DEMO • REAL ESTATE • WATCH DEMO
+                        </textPath>
+                      </text>
+                    </svg>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute inset-0 bg-white/30 rounded-full animate-ping opacity-75 group-hover:opacity-100" style={{ animationDuration: '2s' }}></div>
+                      <div className="relative z-10 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
+                        <Play className="w-5 h-5 text-white ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </motion.div>
             
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.8 }}
-              className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-xl mx-auto lg:mx-0"
+              className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto lg:mx-0"
             >
               {[
                 { text: "Advanced ROI Analysis", subtext: "Complete cash flow reports" },
@@ -134,17 +165,17 @@ const Hero = () => {
               ].map((item, i) => (
                 <motion.div 
                   key={i} 
-                  className="flex flex-col items-center lg:items-start p-4 rounded-xl backdrop-blur-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-300"
+                  className="flex flex-col items-center lg:items-start p-3 rounded-xl backdrop-blur-sm bg-white/5 border border-white/10 hover:bg-white/10 transition-colors duration-300"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + (i * 0.1), duration: 0.5 }}
-                  whileHover={{ y: -5 }}
+                  whileHover={{ y: -3 }}
                 >
-                  <div className="flex items-center mb-2">
-                    <CheckCircle className="w-5 h-5 mr-2 text-accent-300 flex-shrink-0" />
-                    <span className="text-white font-medium">{item.text}</span>
+                  <div className="flex items-center mb-1">
+                    <CheckCircle className="w-4 h-4 mr-2 text-accent-300 flex-shrink-0" />
+                    <span className="text-white font-medium text-sm">{item.text}</span>
                   </div>
-                  <p className="text-sm text-blue-100/70">{item.subtext}</p>
+                  <p className="text-xs text-blue-100/70 text-center lg:text-left">{item.subtext}</p>
                 </motion.div>
               ))}
             </motion.div>
