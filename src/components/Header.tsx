@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
@@ -225,7 +226,7 @@ const Header: React.FC = () => {
                     : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
                 }`}
               >
-                {item.icon && <item.icon className={`h-5 w-5 mr-3 ${location.pathname === item.path ? 'text-primary-600' : 'text-gray-500'}`} />}
+                {item.icon && <item.icon className="h-5 w-5 mr-3" />}
                 {item.label}
               </Link>
             ))
