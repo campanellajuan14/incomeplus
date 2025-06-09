@@ -7,6 +7,7 @@ import Features from './pages/Features';
 import Pricing from './pages/Pricing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import PropertySheet from './pages/PropertySheet';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Protected Route component that redirects to login if not authenticated
@@ -36,6 +37,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/properties" 
+        element={
+          <ProtectedRoute>
+            <PropertySheet />
           </ProtectedRoute>
         } 
       />

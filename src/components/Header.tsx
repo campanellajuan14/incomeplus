@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, BarChart2, X, Menu, UserCircle, LogOut, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, BarChart2, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
@@ -55,7 +55,10 @@ const Header: React.FC = () => {
             { path: '/', label: 'Home' },
             { path: '/features', label: 'Features' },
             { path: '/pricing', label: 'Pricing' },
-            ...(user ? [{ path: '/dashboard', label: 'Dashboard' }] : [])
+            ...(user ? [
+              { path: '/dashboard', label: 'Dashboard' },
+              { path: '/properties', label: 'Properties Sheet' }
+            ] : [])
           ].map((item) => (
             <Link
               key={item.path}
@@ -94,6 +97,12 @@ const Header: React.FC = () => {
                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+                  </Link>
+                  <Link
+                    to="/properties"
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" /> Properties Sheet
                   </Link>
                   <button
                     onClick={handleSignOut}
@@ -144,7 +153,10 @@ const Header: React.FC = () => {
             { path: '/', label: 'Home' },
             { path: '/features', label: 'Features' },
             { path: '/pricing', label: 'Pricing' },
-            ...(user ? [{ path: '/dashboard', label: 'Dashboard' }] : [])
+            ...(user ? [
+              { path: '/dashboard', label: 'Dashboard' },
+              { path: '/properties', label: 'Properties Sheet' }
+            ] : [])
           ].map((item) => (
             <Link
               key={item.path}
@@ -187,6 +199,6 @@ const Header: React.FC = () => {
       </div>
     </header>
   );
-};
+}
 
 export default Header;

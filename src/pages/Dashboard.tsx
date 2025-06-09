@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Search, Tags, PlusCircle, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, Tags, PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
 
 const PropertyCard = ({ property }: { property: any }) => {
   return (
@@ -158,9 +159,50 @@ const Dashboard: React.FC = () => {
           <NewPropertyCard />
         </div>
         
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-primary-700 mb-2">Property Spreadsheet</h2>
+              <p className="text-gray-600">
+                Manage multiple properties in a spreadsheet format. Import or export property data in bulk.
+              </p>
+            </div>
+            <Link
+              to="/properties"
+              className="mt-4 md:mt-0 bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded flex items-center"
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Open Property Sheet
+            </Link>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-primary-200 transition-colors">
+            <div className="flex flex-col md:flex-row items-start md:items-center">
+              <div className="bg-primary-100 p-3 rounded-lg mb-4 md:mb-0 md:mr-6">
+                <FileSpreadsheet className="h-8 w-8 text-primary-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-1">Bulk Property Management</h3>
+                <p className="text-gray-600 mb-4">
+                  Import property data from CSV files, manage them in a spreadsheet view, and export them for your records.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    to="/properties"
+                    className="text-primary-600 hover:text-primary-800 flex items-center"
+                  >
+                    <span>Go to Property Sheet</span>
+                    <ExternalLink className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div className="mt-12 md:mt-16 text-center">
           <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800 touch-target">
-            Learn how to analyze investment properties with DealCheck
+            Learn how to analyze investment properties with IncomePlus
             <ExternalLink className="ml-1 h-4 w-4" />
           </a>
         </div>
