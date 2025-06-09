@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Download, File, X, Check, AlertCircle } from 'lucide-react';
+import { Upload, Download, File, X, Check, AlertCircle, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 
@@ -209,11 +208,18 @@ const PropertySheet: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
             <button
-              onClick={() => setShowImportModal(true)}
+              onClick={() => navigate('/properties/upload')}
               className="bg-primary-500 text-white px-4 py-2 rounded flex items-center hover:bg-primary-600 transition-colors"
             >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Property
+            </button>
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded flex items-center hover:bg-gray-50 transition-colors"
+            >
               <Upload className="h-4 w-4 mr-2" />
-              Import
+              Import CSV
             </button>
             <button
               onClick={handleExportCSV}
