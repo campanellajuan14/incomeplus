@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -6,9 +6,12 @@ import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import InfiniteLoadingSpinner from '../components/InfiniteLoadingSpinner';
 import { usePropertySearch } from '../hooks/usePropertySearch';
 import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
+import { useInfiniteProperties } from '../hooks/useInfiniteProperties';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 type Unit = {
   id: string;
@@ -74,7 +77,7 @@ const Dashboard: React.FC = () => {
   const location = useLocation();
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAllProperties, setShowAllProperties] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   // Parse URL search parameters into filters
   const parseUrlFilters = (): PropertyFiltersType => {
@@ -189,6 +192,23 @@ const Dashboard: React.FC = () => {
     setIsFiltersExpanded
   } = usePropertySearch(allProperties, urlFilters);
 
+  // Infinite loading hook
+  const {
+    displayedProperties,
+    hasMore,
+    isLoadingMore,
+    loadMore
+  } = useInfiniteProperties({
+    filteredProperties,
+    itemsPerPage: 5
+  });
+
+  // Intersection observer for infinite loading
+  const { targetRef } = useIntersectionObserver({
+    onIntersect: loadMore,
+    enabled: hasMore && !isLoadingMore && !isLoading
+  });
+
   // Auto-expand filters if advanced filters are present in URL
   useEffect(() => {
     if (hasAdvancedUrlFilters) {
@@ -197,7 +217,8 @@ const Dashboard: React.FC = () => {
   }, [hasAdvancedUrlFilters, setIsFiltersExpanded]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchProperties();
     }
   }, [user]);
@@ -277,9 +298,6 @@ const Dashboard: React.FC = () => {
     purchasePrice: 0 // This will be set per property
   } : null;
 
-  // Determine which properties to display
-  const displayProperties = showAllProperties ? filteredProperties : filteredProperties.slice(0, 6);
-  
   return (
     <div className="pt-16 md:pt-20 pb-16">
       <LoadingSpinner 
@@ -326,33 +344,17 @@ const Dashboard: React.FC = () => {
         {!isLoading && (
           <div className="flex justify-between items-center mb-4">
             <div className="text-sm text-gray-600">
-              Found {filteredProperties.length} properties
-              {filteredProperties.length !== allProperties.length && ` of ${allProperties.length} total`}
+              Showing {displayedProperties.length} of {filteredProperties.length} properties
+              {filteredProperties.length !== allProperties.length && ` (${allProperties.length} total)`}
             </div>
-            {filteredProperties.length > 6 && !showAllProperties && (
-              <button
-                onClick={() => setShowAllProperties(true)}
-                className="text-primary-600 hover:text-primary-800 text-sm"
-              >
-                Show all {filteredProperties.length} results
-              </button>
-            )}
-            {showAllProperties && (
-              <button
-                onClick={() => setShowAllProperties(false)}
-                className="text-primary-600 hover:text-primary-800 text-sm"
-              >
-                Show featured only
-              </button>
-            )}
           </div>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {!isLoading && (
             <>
-              {!showAllProperties && <NewPropertyCard />}
-              {displayProperties.map(property => (
+              <NewPropertyCard />
+              {displayedProperties.map(property => (
                 <EnhancedPropertyCard 
                   key={property.id} 
                   property={property} 
@@ -367,63 +369,33 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {!isLoading && showAllProperties && (
-          <div className="mt-6 text-center">
-            <NewPropertyCard />
-          </div>
-        )}
-        
-        {!isLoading && (
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-primary-700 mb-2">Property Spreadsheet</h2>
-                <p className="text-gray-600">
-                  Manage multiple properties in a spreadsheet format. Import or export property data in bulk.
-                </p>
-              </div>
-              <Link
-                to="/properties"
-                className="mt-4 md:mt-0 bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded flex items-center"
-              >
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Open Property Sheet
-              </Link>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-primary-200 transition-colors">
-              <div className="flex flex-col md:flex-row items-start md:items-center">
-                <div className="bg-primary-100 p-3 rounded-lg mb-4 md:mb-0 md:mr-6">
-                  <FileSpreadsheet className="h-8 w-8 text-primary-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-1">Bulk Property Management</h3>
-                  <p className="text-gray-600 mb-4">
-                    Import property data from CSV files, manage them in a spreadsheet view, and export them for your records.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    <Link
-                      to="/properties"
-                      className="text-primary-600 hover:text-primary-800 flex items-center"
-                    >
-                      <span>Go to Property Sheet</span>
-                      <ExternalLink className="ml-1 h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
+        {!isLoading && hasMore && (
+          <div ref={targetRef} className="mt-8 flex justify-center">
+            <div className="text-center">
+              {isLoadingMore ? (
+                <InfiniteLoadingSpinner 
+                  isVisible={true}
+                  message="Loading more properties..."
+                />
+              ) : (
+                <button
+                  onClick={loadMore}
+                  className="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition-colors"
+                >
+                  Load More Properties
+                </button>
+              )}
             </div>
           </div>
         )}
-        
-        {!isLoading && (
-          <div className="mt-12 md:mt-16 text-center">
-            <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800 touch-target">
-              Learn how to analyze investment properties with IncomePlus
-              <ExternalLink className="ml-1 h-4 w-4" />
-            </a>
+
+        {!isLoading && !hasMore && displayedProperties.length > 6 && (
+          <div className="mt-8 text-center text-gray-500">
+            You've reached the end of your properties
           </div>
         )}
+     
+        
       </div>
     </div>
   );

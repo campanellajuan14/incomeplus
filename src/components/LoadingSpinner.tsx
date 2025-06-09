@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface LoadingSpinnerProps {
   isVisible: boolean;
@@ -11,10 +11,20 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message = "Processing...",
   variant = 'overlay'
 }) => {
+  // Prevent body scroll when overlay is visible
+  useEffect(() => {
+    if (variant === 'overlay' && isVisible) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [isVisible, variant]);
+
   if (!isVisible) return null;
 
   const overlayClasses = variant === 'overlay' 
-    ? "fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 transition-opacity duration-300" 
+    ? "fixed inset-0 bg-white flex items-center justify-center z-[9999] transition-opacity duration-300" 
     : "flex items-center justify-center py-8";
 
   return (

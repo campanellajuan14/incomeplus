@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Users, TrendingUp, Home, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -57,6 +57,7 @@ const PropertyDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -64,9 +65,10 @@ const PropertyDetail: React.FC = () => {
       return;
     }
 
-    if (id) {
+    if (id && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchProperty(id);
-    } else {
+    } else if (!id) {
       setError('Property ID is required');
       setIsLoading(false);
     }
