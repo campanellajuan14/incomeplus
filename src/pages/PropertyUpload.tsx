@@ -386,8 +386,6 @@ const PropertyUpload: React.FC = () => {
                     name="purchase_price"
                     value={property.purchase_price || ''}
                     onChange={handleChange}
-                    min="1"
-                    step="1000"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -474,8 +472,6 @@ const PropertyUpload: React.FC = () => {
                     name="number_of_units"
                     value={property.number_of_units || ''}
                     onChange={handleChange}
-                    min="1"
-                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -593,8 +589,6 @@ const PropertyUpload: React.FC = () => {
                         type="number"
                         value={unit.rentAmount || ''}
                         onChange={(e) => handleUnitChange(unit.id, 'rentAmount', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        step="50"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                         required
                       />
@@ -641,8 +635,6 @@ const PropertyUpload: React.FC = () => {
                           type="number"
                           value={unit.projectedRent || ''}
                           onChange={(e) => handleUnitChange(unit.id, 'projectedRent', parseFloat(e.target.value) || 0)}
-                          min="0"
-                          step="50"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                           required
                         />
@@ -667,8 +659,6 @@ const PropertyUpload: React.FC = () => {
                     name="property_taxes"
                     value={property.property_taxes || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="100"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -683,8 +673,6 @@ const PropertyUpload: React.FC = () => {
                     name="insurance"
                     value={property.insurance || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="50"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -699,8 +687,6 @@ const PropertyUpload: React.FC = () => {
                     name="hydro"
                     value={property.hydro || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -715,8 +701,6 @@ const PropertyUpload: React.FC = () => {
                     name="gas"
                     value={property.gas || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -731,8 +715,6 @@ const PropertyUpload: React.FC = () => {
                     name="water"
                     value={property.water || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -747,8 +729,6 @@ const PropertyUpload: React.FC = () => {
                     name="waste_management"
                     value={property.waste_management || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -763,8 +743,6 @@ const PropertyUpload: React.FC = () => {
                     name="maintenance"
                     value={property.maintenance || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="50"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -779,8 +757,6 @@ const PropertyUpload: React.FC = () => {
                     name="management_fees"
                     value={property.management_fees || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -795,8 +771,6 @@ const PropertyUpload: React.FC = () => {
                     name="miscellaneous"
                     value={property.miscellaneous || ''}
                     onChange={handleChange}
-                    min="0"
-                    step="25"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
@@ -834,7 +808,6 @@ const PropertyUpload: React.FC = () => {
                     name="down_payment_amount"
                     value={property.down_payment_amount || ''}
                     onChange={handleChange}
-                    min="0"
                     max={property.down_payment_type === 'Percent' ? "100" : undefined}
                     step={property.down_payment_type === 'Percent' ? "0.1" : "1000"}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
@@ -852,9 +825,7 @@ const PropertyUpload: React.FC = () => {
                     name="amortization_period"
                     value={property.amortization_period || ''}
                     onChange={handleChange}
-                    min="1"
                     max="40"
-                    step="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -870,9 +841,7 @@ const PropertyUpload: React.FC = () => {
                     name="mortgage_rate"
                     value={property.mortgage_rate || ''}
                     onChange={handleChange}
-                    min="0"
                     max="20"
-                    step="0.1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
