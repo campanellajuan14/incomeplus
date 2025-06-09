@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           <div className="col-span-2">
             <div className="flex items-center mb-4">
               <img 
-                src="/lovable-uploads/d63f3e54-8fc1-4eed-bbd0-a2fde47ccb2a.png" 
+                src="/logo.png" 
                 alt="IncomePlus Logo" 
                 className="h-10" 
               />

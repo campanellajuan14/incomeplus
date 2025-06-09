@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
