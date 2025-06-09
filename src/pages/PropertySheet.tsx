@@ -267,6 +267,7 @@ const PropertySheet: React.FC = () => {
     }, 0);
   };
 
+  // Calculate total monthly expenses
   const calculateTotalExpenses = (property: Property) => {
     return (property.property_taxes || 0) + (property.insurance || 0) + (property.hydro || 0) + 
            (property.gas || 0) + (property.water || 0) + (property.waste_management || 0) + 

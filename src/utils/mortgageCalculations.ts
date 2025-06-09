@@ -15,6 +15,10 @@ export interface CalculatedMetrics {
   roi: number;
   capRate: number;
   debtServiceRatio: number;
+  downPaymentAmount: number;
+  loanAmount: number;
+  annualCashFlow: number;
+  netOperatingIncome: number;
 }
 
 export const calculateMortgagePayment = (
@@ -52,33 +56,53 @@ export const calculatePropertyMetrics = (
     return total + rent;
   }, 0) || 0;
 
-  // Calculate total monthly expenses
+  // Calculate total monthly operating expenses (excluding mortgage)
   const totalExpenses = (property.property_taxes || 0) + (property.insurance || 0) + 
                        (property.hydro || 0) + (property.gas || 0) + (property.water || 0) + 
                        (property.waste_management || 0) + (property.maintenance || 0) + 
                        (property.management_fees || 0) + (property.miscellaneous || 0);
 
   // Calculate mortgage details
-  const downPayment = calculateDownPayment(
-    property.purchase_price,
+  const downPaymentAmount = calculateDownPayment(
+    mortgageParams.purchasePrice,
     mortgageParams.downPaymentType,
     mortgageParams.downPaymentValue
   );
   
-  const loanAmount = property.purchase_price - downPayment;
+  const loanAmount = mortgageParams.purchasePrice - downPaymentAmount;
   const monthlyPayment = calculateMortgagePayment(
     loanAmount,
     mortgageParams.mortgageRate,
     mortgageParams.amortizationPeriod
   );
 
-  // Calculate metrics
-  const monthlyCashFlow = totalRent - totalExpenses - monthlyPayment;
-  const annualCashFlow = monthlyCashFlow * 12;
-  const roi = downPayment > 0 ? (annualCashFlow / downPayment) * 100 : 0;
-  const capRate = property.purchase_price > 0 ? 
-    ((totalRent * 12 - totalExpenses * 12) / property.purchase_price) * 100 : 0;
-  const debtServiceRatio = totalRent > 0 ? (monthlyPayment / totalRent) * 100 : 0;
+  // Calculate annual values
+  const annualRent = totalRent * 12;
+  const annualOperatingExpenses = totalExpenses * 12;
+  const annualDebtService = monthlyPayment * 12;
+
+  // Net Operating Income (NOI) = Annual Rental Income - Annual Operating Expenses
+  // This excludes mortgage payments and depreciation
+  const netOperatingIncome = annualRent - annualOperatingExpenses;
+
+  // Cash Flow = NOI - Annual Debt Service (mortgage payments)
+  const annualCashFlow = netOperatingIncome - annualDebtService;
+  const monthlyCashFlow = annualCashFlow / 12;
+
+  // Cap Rate = NOI / Purchase Price (as percentage)
+  // Standard real estate metric for property value assessment
+  const capRate = mortgageParams.purchasePrice > 0 ? 
+    (netOperatingIncome / mortgageParams.purchasePrice) * 100 : 0;
+
+  // Cash-on-Cash ROI = Annual Cash Flow / Total Cash Invested (as percentage)
+  // This is the return on actual cash invested (down payment + closing costs)
+  const roi = downPaymentAmount > 0 ? (annualCashFlow / downPaymentAmount) * 100 : 0;
+
+  // Debt Service Coverage Ratio = NOI / Annual Debt Service
+  // This is the correct formula: NOI / Debt Service
+  // Displayed as a ratio (e.g., -1.68 for your example)
+  const debtServiceRatio = annualDebtService > 0 ? 
+    (netOperatingIncome / annualDebtService) : 0;
 
   return {
     monthlyPayment,
@@ -87,6 +111,10 @@ export const calculatePropertyMetrics = (
     monthlyCashFlow,
     roi,
     capRate,
-    debtServiceRatio
+    debtServiceRatio,
+    downPaymentAmount,
+    loanAmount,
+    annualCashFlow,
+    netOperatingIncome
   };
 };

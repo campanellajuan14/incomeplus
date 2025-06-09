@@ -1,30 +1,53 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 
 interface EnhancedPropertyCardProps {
   property: any;
 }
 
 const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property }) => {
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const metrics = property.calculatedMetrics;
   const images = property.images || [];
 
-  const nextImage = () => {
+  // Use the exact same mortgage parameters as the property details
+  const mortgageParams: MortgageParams = {
+    mortgageRate: property.mortgage_rate || 4.0,
+    amortizationPeriod: property.amortization_period || 25,
+    downPaymentType: property.down_payment_type || 'Percent',
+    downPaymentValue: property.down_payment_amount || 20,
+    purchasePrice: property.purchase_price
+  };
+
+  const metrics = calculatePropertyMetrics(property, mortgageParams);
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
-  const prevImage = () => {
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const goToImage = (index: number) => {
+  const goToImage = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     setCurrentImageIndex(index);
   };
 
+  const handleCardClick = () => {
+    navigate(`/properties/${property.id}`);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200">
+    <div 
+      onClick={handleCardClick}
+      className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
+    >
       <div className="relative">
         {images.length > 0 && (
           <div className="relative h-48 overflow-hidden">
@@ -66,7 +89,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
                   {images.map((_: string, index: number) => (
                     <button
                       key={index}
-                      onClick={() => goToImage(index)}
+                      onClick={(e) => goToImage(index, e)}
                       className={`w-2 h-2 rounded-full transition-all duration-200 ${
                         index === currentImageIndex 
                           ? 'bg-white' 
@@ -97,7 +120,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
 
         <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
           <div className={`${metrics?.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            <div className="font-medium">${Math.round(metrics?.monthlyCashFlow || 0)}/mo</div>
+            <div className="font-medium">${Math.round(metrics?.monthlyCashFlow || 0).toLocaleString()}/mo</div>
             <div className="text-xs text-gray-500">Cash Flow</div>
           </div>
           <div className="text-blue-600">
@@ -109,8 +132,8 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
             <div className="text-xs text-gray-500">Cap Rate</div>
           </div>
           <div className="text-orange-600">
-            <div className="font-medium">{(metrics?.debtServiceRatio || 0).toFixed(1)}%</div>
-            <div className="text-xs text-gray-500">Debt Service</div>
+            <div className="font-medium">{(metrics?.debtServiceRatio || 0).toFixed(2)}x</div>
+            <div className="text-xs text-gray-500">DSCR</div>
           </div>
         </div>
 
