@@ -126,7 +126,6 @@ const Pricing: React.FC = () => {
 
   return (
     <main className="pt-20">
-      {/* Hero Section */}
       <section className="bg-primary-500 text-white py-20">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center">
@@ -150,7 +149,6 @@ const Pricing: React.FC = () => {
         </div>
       </section>
 
-      {/* Pricing Tiers */}
       <section className="py-20 -mt-10">
         <div className="container">
           <motion.div
@@ -167,7 +165,6 @@ const Pricing: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Included */}
       <section className="py-16 bg-gray-50">
         <div className="container">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -194,7 +191,6 @@ const Pricing: React.FC = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
       <section className="py-16">
         <div className="container max-w-3xl">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -208,7 +204,6 @@ const Pricing: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 bg-primary-500 text-white">
         <div className="container text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">

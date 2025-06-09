@@ -26,13 +26,56 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Public Route component that redirects to dashboard if authenticated
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/features" element={<Features />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/auth" element={<Auth />} />
+      <Route 
+        path="/" 
+        element={
+          <PublicRoute>
+            <Home />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/features" 
+        element={
+          <PublicRoute>
+            <Features />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/pricing" 
+        element={
+          <PublicRoute>
+            <Pricing />
+          </PublicRoute>
+        } 
+      />
+      <Route 
+        path="/auth" 
+        element={
+          <PublicRoute>
+            <Auth />
+          </PublicRoute>
+        } 
+      />
       <Route 
         path="/dashboard" 
         element={
