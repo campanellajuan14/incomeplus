@@ -10,7 +10,6 @@ const Features = () => {
 
   return (
     <main className="pt-20">
-      {/* Hero Section */}
       <section className="bg-primary-500 text-white py-20">
         <div className="container">
           <div className="max-w-3xl mx-auto text-center">
@@ -34,7 +33,7 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Property Analysis Section */}
+       Property Analysis Section */}
       <section className="py-16 bg-white">
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -84,7 +83,6 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Features Grid */}
       <section className="py-16 bg-gray-50">
         <div className="container">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -138,7 +136,6 @@ const Features = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 bg-primary-500 text-white">
         <div className="container text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
