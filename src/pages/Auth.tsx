@@ -1,9 +1,29 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 
 type FormType = 'login' | 'signup';
+
+// Helper function to clean up auth state
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
 
 const Auth: React.FC = () => {
   const [formType, setFormType] = useState<FormType>('login');
@@ -16,15 +36,26 @@ const Auth: React.FC = () => {
   const [errors, setErrors] = useState({
     email: '',
     password: '',
-    name: ''
+    name: '',
+    form: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
+
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const validateForm = () => {
     const newErrors = {
       email: '',
       password: '',
-      name: ''
+      name: '',
+      form: ''
     };
     let isValid = true;
 
@@ -64,20 +95,41 @@ const Auth: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
-      // Mock authentication - in a real app, this would connect to a backend
-      console.log('Form submitted:', formValues);
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
+    setErrors({ ...errors, form: '' });
+    
+    try {
+      // Clean up existing auth state
+      cleanupAuthState();
       
-      // Show success message
-      alert(formType === 'login' 
-        ? 'Login successful! (This is a demo)' 
-        : 'Account created! (This is a demo)');
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
       
-      // Redirect to home page
-      navigate('/');
+      if (formType === 'login') {
+        await signIn(formValues.email, formValues.password);
+        // Redirect will happen in useEffect when user state updates
+      } else {
+        await signUp(formValues.email, formValues.password, formValues.name);
+        // Show success message for signup
+        alert('Registration successful! Please check your email to confirm your account.');
+      }
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      setErrors({
+        ...errors,
+        form: error.message || 'An error occurred during authentication'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,7 +138,8 @@ const Auth: React.FC = () => {
     setErrors({
       email: '',
       password: '',
-      name: ''
+      name: '',
+      form: ''
     });
   };
 
@@ -99,10 +152,17 @@ const Auth: React.FC = () => {
           </h2>
           <p className="mt-2 text-gray-600">
             {formType === 'login' 
-              ? 'Enter your credentials to access your account' 
+              ? 'Enter your credentials to access your dashboard' 
               : 'Sign up to start analyzing real estate investments'}
           </p>
         </div>
+
+        {errors.form && (
+          <div className="bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg flex items-start">
+            <AlertCircle className="h-5 w-5 text-error-400 mr-2 mt-0.5" />
+            <span>{errors.form}</span>
+          </div>
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {formType === 'signup' && (
@@ -115,6 +175,7 @@ const Auth: React.FC = () => {
                   placeholder="Full Name"
                   value={formValues.name}
                   onChange={handleChange}
+                  disabled={isLoading}
                   className={`w-full pl-10 pr-4 py-3 border ${errors.name ? 'border-error-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 />
               </div>
@@ -131,6 +192,7 @@ const Auth: React.FC = () => {
                 placeholder="Email Address"
                 value={formValues.email}
                 onChange={handleChange}
+                disabled={isLoading}
                 className={`w-full pl-10 pr-4 py-3 border ${errors.email ? 'border-error-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500`}
               />
             </div>
@@ -146,6 +208,7 @@ const Auth: React.FC = () => {
                 placeholder="Password"
                 value={formValues.password}
                 onChange={handleChange}
+                disabled={isLoading}
                 className={`w-full pl-10 pr-12 py-3 border ${errors.password ? 'border-error-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500`}
               />
               <button
@@ -171,10 +234,20 @@ const Auth: React.FC = () => {
           <div>
             <button
               type="submit"
-              className="w-full flex items-center justify-center py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm transition duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center py-3 px-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg shadow-sm transition duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <span>{formType === 'login' ? 'Sign In' : 'Create Account'}</span>
-              <ArrowRight className="ml-2" size={18} />
+              {isLoading ? (
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <>
+                  <span>{formType === 'login' ? 'Sign In' : 'Create Account'}</span>
+                  <ArrowRight className="ml-2" size={18} />
+                </>
+              )}
             </button>
           </div>
         </form>
