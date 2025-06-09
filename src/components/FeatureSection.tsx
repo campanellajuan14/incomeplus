@@ -70,11 +70,17 @@ const FeatureSection = () => {
   };
 
   return (
-    <section id="features" className="section bg-gray-50">
-      <div className="container">
+    <section id="features" className="section bg-gray-50 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary-100 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-50"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent-100 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl opacity-60"></div>
+      
+      <div className="container relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="inline-block px-4 py-1.5 mb-4 text-sm font-medium bg-primary-100 rounded-full text-primary-700">
+            Features
+          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Powerful features for investment analysis
+            Powerful tools for investment analysis
           </h2>
           <p className="text-gray-600">
             Everything you need to evaluate real estate investments and make confident decisions.
@@ -92,14 +98,23 @@ const FeatureSection = () => {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="feature-card"
+              className="feature-card group hover:translate-y-[-5px]"
             >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <div className="mb-5 p-3 bg-primary-50 rounded-xl inline-block group-hover:bg-primary-100 transition-colors">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
               <p className="text-gray-600">{feature.description}</p>
             </motion.div>
           ))}
         </motion.div>
+
+        <div className="flex justify-center mt-10">
+          <a href="/features" className="btn btn-primary flex items-center gap-2">
+            <span>Explore All Features</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </a>
+        </div>
       </div>
     </section>
   );
