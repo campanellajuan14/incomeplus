@@ -171,9 +171,14 @@ const Dashboard: React.FC = () => {
   const urlFilters = parseUrlFilters();
 
   // Check if URL has advanced filter parameters to auto-expand filters
-  const hasAdvancedUrlFilters = Object.keys(urlFilters).some(key => 
-    !['priceMin', 'priceMax', 'cashFlowMin', 'cashFlowMax', 'city', 'unitsMin', 'unitsMax'].includes(key)
-  );
+  const hasAdvancedUrlFilters = Object.entries(urlFilters).some(([key, value]) => {
+    // Skip basic filters
+    if (['priceMin', 'priceMax', 'cashFlowMin', 'cashFlowMax', 'city', 'unitsMin', 'unitsMax'].includes(key)) {
+      return false;
+    }
+    // Only consider it an advanced filter if it has a meaningful value (not undefined, null, empty string, or 'All')
+    return value !== undefined && value !== null && value !== '' && value !== 'All';
+  });
 
   const {
     filters,
@@ -186,10 +191,10 @@ const Dashboard: React.FC = () => {
 
   // Auto-expand filters if advanced filters are present in URL
   useEffect(() => {
-    if (hasAdvancedUrlFilters && !isFiltersExpanded) {
+    if (hasAdvancedUrlFilters) {
       setIsFiltersExpanded(true);
     }
-  }, [hasAdvancedUrlFilters, isFiltersExpanded, setIsFiltersExpanded]);
+  }, [hasAdvancedUrlFilters, setIsFiltersExpanded]);
 
   useEffect(() => {
     if (user) {

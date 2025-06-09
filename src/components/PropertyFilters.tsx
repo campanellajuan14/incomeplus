@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Filter, DollarSign, Home, Users } from 'lucide-react';
 import { PropertyFilters, defaultFilters } from '../types/filters';
@@ -18,7 +17,7 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
   isExpanded,
   onToggleExpanded
 }) => {
-  const updateFilter = (key: keyof PropertyFilters, value: any) => {
+  const updateFilter = <K extends keyof PropertyFilters>(key: K, value: PropertyFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
@@ -177,7 +176,7 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
                 <label className="block text-sm text-gray-600 mb-1">Down Payment Type</label>
                 <select
                   value={filters.downPaymentType || 'All'}
-                  onChange={(e) => updateFilter('downPaymentType', e.target.value as any)}
+                  onChange={(e) => updateFilter('downPaymentType', e.target.value as 'Percent' | 'Fixed' | 'All')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 >
                   <option value="All">All</option>
@@ -267,7 +266,7 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
                 <label className="block text-sm text-gray-600 mb-1">Income Type</label>
                 <select
                   value={filters.incomeType || 'All'}
-                  onChange={(e) => updateFilter('incomeType', e.target.value as any)}
+                  onChange={(e) => updateFilter('incomeType', e.target.value as 'Actual' | 'Estimated' | 'Mixed' | 'All')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 >
                   <option value="All">All</option>
@@ -280,7 +279,7 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
                 <label className="block text-sm text-gray-600 mb-1">Tenancy Type</label>
                 <select
                   value={filters.tenancyType || 'All'}
-                  onChange={(e) => updateFilter('tenancyType', e.target.value as any)}
+                  onChange={(e) => updateFilter('tenancyType', e.target.value as 'On Leases' | 'Month to Month' | 'Mixed' | 'All')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 >
                   <option value="All">All</option>
@@ -293,7 +292,7 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
                 <label className="block text-sm text-gray-600 mb-1">Vacancy Status</label>
                 <select
                   value={filters.vacancyStatus || 'All'}
-                  onChange={(e) => updateFilter('vacancyStatus', e.target.value as any)}
+                  onChange={(e) => updateFilter('vacancyStatus', e.target.value as 'Occupied' | 'Vacant' | 'All')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                 >
                   <option value="All">All</option>
