@@ -17,9 +17,9 @@ function Home() {
       <FeatureSection />
       <FinancialAnalytics />
       <Statistics />
+      <Calculator />
       <Benefits />
       <Testimonials />
-      <Calculator />
       <CallToAction />
     </main>
   );
