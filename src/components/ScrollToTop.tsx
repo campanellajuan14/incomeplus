@@ -7,6 +7,7 @@ interface ScrollToTopProps {
   bottom?: number; // Distance from bottom in pixels
   right?: number; // Distance from right in pixels
   size?: 'sm' | 'md' | 'lg';
+  showProgress?: boolean; // Whether to show the progress border
 }
 
 const ScrollToTop = ({
@@ -14,6 +15,7 @@ const ScrollToTop = ({
   bottom = 20,
   right = 20,
   size = 'md',
+  showProgress = true,
 }: ScrollToTopProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -40,7 +42,7 @@ const ScrollToTop = ({
       const documentHeight = document.documentElement.scrollHeight;
       const totalScrollableHeight = documentHeight - windowHeight;
       
-      if (totalScrollableHeight > 0) {
+      if (showProgress && totalScrollableHeight > 0) {
         const progress = Math.max(0, Math.min(100, (scrollTop / totalScrollableHeight) * 100));
         setScrollProgress(progress);
       } else {
@@ -57,7 +59,7 @@ const ScrollToTop = ({
     window.addEventListener('scroll', updateScrollProgress, { passive: true });
     updateScrollProgress();
     return () => window.removeEventListener('scroll', updateScrollProgress);
-  }, [showAfter]);
+  }, [showAfter, showProgress]);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -89,41 +91,43 @@ const ScrollToTop = ({
               onClick={scrollToTop}
               aria-label="Scroll to top"
             >
-              <svg
-                className="absolute inset-0 transform -rotate-90"
-                width={buttonSize}
-                height={buttonSize}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%) rotate(-90deg)'
-                }}
-              >
-                <circle
-                  cx={buttonSize / 2}
-                  cy={buttonSize / 2}
-                  r={radius}
-                  stroke="rgba(0, 0, 0, 0.1)"
-                  strokeWidth={sizeConfig.strokeWidth}
-                  fill="none"
-                />
-                
-                <circle
-                  cx={buttonSize / 2}
-                  cy={buttonSize / 2}
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth={sizeConfig.strokeWidth}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeDasharray={`${circumference} ${circumference}`}
-                  strokeDashoffset={progressOffset}
-                  className="text-primary-500"
+              {showProgress && (
+                <svg
+                  className="absolute inset-0 transform -rotate-90"
+                  width={buttonSize}
+                  height={buttonSize}
                   style={{
-                    transition: 'stroke-dashoffset 0.15s ease-out'
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%) rotate(-90deg)'
                   }}
-                />
-              </svg>
+                >
+                  <circle
+                    cx={buttonSize / 2}
+                    cy={buttonSize / 2}
+                    r={radius}
+                    stroke="rgba(0, 0, 0, 0.1)"
+                    strokeWidth={sizeConfig.strokeWidth}
+                    fill="none"
+                  />
+                  
+                  <circle
+                    cx={buttonSize / 2}
+                    cy={buttonSize / 2}
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth={sizeConfig.strokeWidth}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${circumference} ${circumference}`}
+                    strokeDashoffset={progressOffset}
+                    className="text-primary-500"
+                    style={{
+                      transition: 'stroke-dashoffset 0.15s ease-out'
+                    }}
+                  />
+                </svg>
+              )}
 
               <div className="relative z-10">
                 <ArrowUp className={`${sizeConfig.icon}`} strokeWidth={2} />

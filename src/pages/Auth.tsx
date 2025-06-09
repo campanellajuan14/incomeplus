@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import Alert from '../components/Alert';
 
 type FormType = 'login' | 'signup';
 
@@ -110,7 +110,7 @@ const Auth: React.FC = () => {
       // Attempt global sign out
       try {
         await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
+      } catch {
         // Continue even if this fails
       }
       
@@ -122,11 +122,12 @@ const Auth: React.FC = () => {
         // Show success message for signup
         alert('Registration successful! Please check your email to confirm your account.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during authentication';
       setErrors({
         ...errors,
-        form: error.message || 'An error occurred during authentication'
+        form: errorMessage
       });
     } finally {
       setIsLoading(false);
@@ -158,10 +159,9 @@ const Auth: React.FC = () => {
         </div>
 
         {errors.form && (
-          <div className="bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg flex items-start">
-            <AlertCircle className="h-5 w-5 text-error-400 mr-2 mt-0.5" />
-            <span>{errors.form}</span>
-          </div>
+          <Alert variant="error">
+            {errors.form}
+          </Alert>
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

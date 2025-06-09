@@ -30,6 +30,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className={overlayClasses}>
       <div className="text-center">
+        {/* Enhanced bouncing dots animation */}
         <div className="flex space-x-2 justify-center mb-4">
           <div 
             className="w-3 h-3 bg-primary-600 rounded-full animate-bounce" 
@@ -57,12 +58,14 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           ></div>
         </div>
         
+        {/* Animated message with fade-in effect */}
         {message && (
           <p className="text-gray-600 text-sm font-medium animate-pulse transition-all duration-500">
             {message}
           </p>
         )}
         
+        {/* Additional subtle animation - expanding circle */}
         <div className="mt-6 flex justify-center">
           <div className="relative">
             <div className="w-8 h-8 border-2 border-primary-200 rounded-full opacity-30"></div>
