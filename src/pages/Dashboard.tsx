@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
@@ -7,6 +6,7 @@ import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
 import { usePropertySearch } from '../hooks/usePropertySearch';
+import { MortgageParams } from '../utils/mortgageCalculations';
 
 type Unit = {
   id: string;
@@ -23,8 +23,12 @@ type Property = {
   address: string;
   city: string;
   province: string;
+  postal_code: string;
   purchase_price: number;
   number_of_units: number;
+  property_description: string;
+  income_type: 'Estimated' | 'Actual' | 'Mixed';
+  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
   units: Unit[];
   property_taxes: number;
   insurance: number;
@@ -35,7 +39,14 @@ type Property = {
   maintenance: number;
   management_fees: number;
   miscellaneous: number;
+  down_payment_type: 'Percent' | 'Fixed';
+  down_payment_amount: number;
+  amortization_period: number;
+  mortgage_rate: number;
   images: string[];
+  agent_name: string;
+  agent_email: string;
+  agent_phone: string;
   created_at: string;
 };
 
@@ -98,8 +109,12 @@ const Dashboard: React.FC = () => {
           address: item.address,
           city: item.city,
           province: item.province,
+          postal_code: item.postal_code || '',
           purchase_price: item.purchase_price,
           number_of_units: item.number_of_units,
+          property_description: item.property_description || '',
+          income_type: item.income_type as 'Estimated' | 'Actual' | 'Mixed' || 'Estimated',
+          tenancy_type: item.tenancy_type as 'On Leases' | 'Month to Month' | 'Mixed' || 'On Leases',
           units: Array.isArray(item.units) ? item.units as Unit[] : [],
           property_taxes: item.property_taxes || 0,
           insurance: item.insurance || 0,
@@ -110,7 +125,14 @@ const Dashboard: React.FC = () => {
           maintenance: item.maintenance || 0,
           management_fees: item.management_fees || 0,
           miscellaneous: item.miscellaneous || 0,
+          down_payment_type: item.down_payment_type as 'Percent' | 'Fixed' || 'Percent',
+          down_payment_amount: item.down_payment_amount || 20,
+          amortization_period: item.amortization_period || 25,
+          mortgage_rate: item.mortgage_rate || 4.0,
           images: Array.isArray(item.images) ? item.images as string[] : [],
+          agent_name: item.agent_name || '',
+          agent_email: item.agent_email || '',
+          agent_phone: item.agent_phone || '',
           created_at: item.created_at
         }));
 
@@ -118,12 +140,21 @@ const Dashboard: React.FC = () => {
       } else {
         setAllProperties([]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching properties:', err);
       setAllProperties([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Create dynamic mortgage parameters from current filters
+  const dynamicMortgageParams: MortgageParams = {
+    mortgageRate: filters.mortgageRate || 5.5,
+    amortizationPeriod: filters.amortizationPeriod || 25,
+    downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
+    downPaymentValue: filters.downPaymentValue || 20,
+    purchasePrice: 0 // This will be set per property
   };
 
   // Determine which properties to display
@@ -196,7 +227,14 @@ const Dashboard: React.FC = () => {
             <>
               {!showAllProperties && <NewPropertyCard />}
               {displayProperties.map(property => (
-                <EnhancedPropertyCard key={property.id} property={property} />
+                <EnhancedPropertyCard 
+                  key={property.id} 
+                  property={property} 
+                  dynamicMortgageParams={{
+                    ...dynamicMortgageParams,
+                    purchasePrice: property.purchase_price
+                  }}
+                />
               ))}
             </>
           )}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Check, ArrowUp, Plus, Trash2, X, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 // Canadian provinces
 const CANADIAN_PROVINCES = [
@@ -123,7 +124,7 @@ const PropertyUpload: React.FC = () => {
   };
 
   // Handle unit changes
-  const handleUnitChange = (unitId: string, field: keyof Unit, value: any) => {
+  const handleUnitChange = (unitId: string, field: keyof Unit, value: string | number) => {
     setProperty(prev => ({
       ...prev,
       units: prev.units.map(unit => 
@@ -230,9 +231,10 @@ const PropertyUpload: React.FC = () => {
       
       console.log('All uploads completed. URLs:', uploadedUrls);
       return uploadedUrls;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error uploading images:', err);
-      setError(`Failed to upload images: ${err.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to upload images: ${errorMessage}`);
       throw err;
     } finally {
       setIsUploading(false);
@@ -313,9 +315,10 @@ const PropertyUpload: React.FC = () => {
         navigate('/properties');
       }, 2000);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adding property:', err);
-      setError(`Failed to add property: ${err.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to add property: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -323,6 +326,12 @@ const PropertyUpload: React.FC = () => {
   
   return (
     <div className="pt-16 md:pt-20 pb-16">
+      <LoadingSpinner 
+        isVisible={isLoading || isUploading}
+        message={isUploading ? "Uploading images..." : "Saving property..."}
+        variant="overlay"
+      />
+      
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-primary-700 mb-2">Add New Property</h1>

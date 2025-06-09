@@ -1,20 +1,65 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
+import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
+
+type Unit = {
+  id: string;
+  unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
+  rentAmount: number;
+  rentCategory: 'Market Value' | 'Under Market Value';
+  vacancyStatus: 'Occupied' | 'Vacant';
+  projectedRent?: number;
+};
+
+type Property = {
+  id: string;
+  property_title: string;
+  address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  purchase_price: number;
+  number_of_units: number;
+  property_description: string;
+  income_type: 'Estimated' | 'Actual' | 'Mixed';
+  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
+  units: Unit[];
+  property_taxes: number;
+  insurance: number;
+  hydro: number;
+  gas: number;
+  water: number;
+  waste_management: number;
+  maintenance: number;
+  management_fees: number;
+  miscellaneous: number;
+  down_payment_type: 'Percent' | 'Fixed';
+  down_payment_amount: number;
+  amortization_period: number;
+  mortgage_rate: number;
+  images: string[];
+  agent_name: string;
+  agent_email: string;
+  agent_phone: string;
+  created_at: string;
+};
 
 interface EnhancedPropertyCardProps {
-  property: any;
+  property: Property;
+  dynamicMortgageParams?: MortgageParams; // New optional prop for dynamic calculations
 }
 
-const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property }) => {
+const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ 
+  property, 
+  dynamicMortgageParams 
+}) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = property.images || [];
 
-  // Use the exact same mortgage parameters as the property details
-  const mortgageParams: MortgageParams = {
+  // Use dynamic mortgage parameters if provided, otherwise fall back to property defaults
+  const mortgageParams: MortgageParams = dynamicMortgageParams || {
     mortgageRate: property.mortgage_rate || 4.0,
     amortizationPeriod: property.amortization_period || 25,
     downPaymentType: property.down_payment_type || 'Percent',
@@ -22,7 +67,13 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
     purchasePrice: property.purchase_price
   };
 
+  // Calculate metrics using the mortgage parameters
   const metrics = calculatePropertyMetrics(property, mortgageParams);
+  
+  // Calculate dynamic cash flow using current filter inputs
+  const dynamicCashFlow = dynamicMortgageParams 
+    ? calculateDynamicCashFlow(property, dynamicMortgageParams)
+    : metrics.monthlyCashFlow;
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -114,13 +165,13 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ property })
         <div className="flex items-center text-sm text-gray-600 mb-3">
           <Users className="h-3 w-3 mr-1" />
           <span className="mr-4">{property.number_of_units} Units</span>
-          <span className="mr-4">{property.units?.filter((u: any) => u.vacancyStatus === 'Occupied').length || 0} Occupied</span>
-          <span>{property.units?.filter((u: any) => u.vacancyStatus === 'Vacant').length || 0} Vacant</span>
+          <span className="mr-4">{property.units?.filter((u: Unit) => u.vacancyStatus === 'Occupied').length || 0} Occupied</span>
+          <span>{property.units?.filter((u: Unit) => u.vacancyStatus === 'Vacant').length || 0} Vacant</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-          <div className={`${metrics?.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            <div className="font-medium">${Math.round(metrics?.monthlyCashFlow || 0).toLocaleString()}/mo</div>
+          <div className={`${dynamicCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="font-medium">${Math.round(dynamicCashFlow || 0).toLocaleString()}/mo</div>
             <div className="text-xs text-gray-500">Cash Flow</div>
           </div>
           <div className="text-blue-600">
