@@ -4,20 +4,45 @@ import { Upload, Download, File, X, Check, AlertCircle, Plus } from 'lucide-reac
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 
+type Unit = {
+  id: string;
+  unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
+  rentAmount: number;
+  rentCategory: 'Market Value' | 'Under Market Value';
+  vacancyStatus: 'Occupied' | 'Vacant';
+  projectedRent?: number;
+};
+
 type Property = {
   id?: string;
+  property_title: string;
   address: string;
   city: string;
-  state: string;
-  zipcode: string;  // Changed from zipCode to zipcode
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  yearbuilt: number;  // Changed from yearBuilt to yearbuilt
-  caprate: number;    // Changed from capRate to caprate
-  cashflow: number;   // Changed from cashFlow to cashflow
-  cocreturn: number;  // Changed from cocReturn to cocreturn
+  province: string;
+  postal_code: string;
+  purchase_price: number;
+  number_of_units: number;
+  property_description: string;
+  income_type: 'Estimated' | 'Actual' | 'Mixed';
+  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
+  units: Unit[];
+  property_taxes: number;
+  insurance: number;
+  hydro: number;
+  gas: number;
+  water: number;
+  waste_management: number;
+  maintenance: number;
+  management_fees: number;
+  miscellaneous: number;
+  down_payment_type: 'Percent' | 'Fixed';
+  down_payment_amount: number;
+  amortization_period: number;
+  mortgage_rate: number;
+  images: string[];
+  agent_name: string;
+  agent_email: string;
+  agent_phone: string;
   user_id: string;
   created_at?: string;
 };
@@ -53,12 +78,55 @@ const PropertySheet: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
-      setProperties(data || []);
+      // Only transform data if it exists and is an array
+      if (data && Array.isArray(data)) {
+        const transformedProperties: Property[] = data.map(item => ({
+          id: item.id,
+          property_title: item.property_title,
+          address: item.address,
+          city: item.city,
+          province: item.province,
+          postal_code: item.postal_code,
+          purchase_price: item.purchase_price,
+          number_of_units: item.number_of_units,
+          property_description: item.property_description || '',
+          income_type: item.income_type as 'Estimated' | 'Actual' | 'Mixed',
+          tenancy_type: item.tenancy_type as 'On Leases' | 'Month to Month' | 'Mixed',
+          units: Array.isArray(item.units) ? item.units as Unit[] : [],
+          property_taxes: item.property_taxes || 0,
+          insurance: item.insurance || 0,
+          hydro: item.hydro || 0,
+          gas: item.gas || 0,
+          water: item.water || 0,
+          waste_management: item.waste_management || 0,
+          maintenance: item.maintenance || 0,
+          management_fees: item.management_fees || 0,
+          miscellaneous: item.miscellaneous || 0,
+          down_payment_type: item.down_payment_type as 'Percent' | 'Fixed',
+          down_payment_amount: item.down_payment_amount,
+          amortization_period: item.amortization_period,
+          mortgage_rate: item.mortgage_rate,
+          images: Array.isArray(item.images) ? item.images as string[] : [],
+          agent_name: item.agent_name,
+          agent_email: item.agent_email,
+          agent_phone: item.agent_phone,
+          user_id: item.user_id,
+          created_at: item.created_at
+        }));
+
+        setProperties(transformedProperties);
+      } else {
+        setProperties([]);
+      }
     } catch (err: any) {
       console.error('Error fetching properties:', err);
       setError('Failed to load properties. Please try again.');
+      setProperties([]);
     } finally {
       setIsLoading(false);
     }
@@ -87,23 +155,18 @@ const PropertySheet: React.FC = () => {
       headers.forEach((header, index) => {
         let value = values[index];
         
-        // Map the camelCase properties to snake_case for database compatibility
-        const fieldName = header === 'zipCode' ? 'zipcode' : 
-                          header === 'yearBuilt' ? 'yearbuilt' :
-                          header === 'capRate' ? 'caprate' :
-                          header === 'cashFlow' ? 'cashflow' :
-                          header === 'cocReturn' ? 'cocreturn' : header;
-        
         // Convert numeric values
-        if (['price', 'bedrooms', 'bathrooms', 'sqft', 'yearbuilt', 'caprate', 'cashflow', 'cocreturn'].includes(fieldName)) {
-          property[fieldName] = parseFloat(value) || 0;
+        if (['purchase_price', 'number_of_units', 'property_taxes', 'insurance', 'hydro', 'gas', 'water', 'waste_management', 'maintenance', 'management_fees', 'miscellaneous', 'down_payment_amount', 'amortization_period', 'mortgage_rate'].includes(header)) {
+          property[header] = parseFloat(value) || 0;
         } else {
-          property[fieldName] = value || '';
+          property[header] = value || '';
         }
       });
       
-      // Add user_id
+      // Set defaults for required fields
       property.user_id = user?.id || '';
+      property.units = property.units || [];
+      property.images = property.images || [];
       
       newProperties.push(property as Property);
     }
@@ -157,8 +220,8 @@ const PropertySheet: React.FC = () => {
       return;
     }
     
-    // Create CSV header - use original column names for export
-    const headers = ['address', 'city', 'state', 'zipcode', 'price', 'bedrooms', 'bathrooms', 'sqft', 'yearbuilt', 'caprate', 'cashflow', 'cocreturn'];
+    // Create CSV header
+    const headers = ['property_title', 'address', 'city', 'province', 'postal_code', 'purchase_price', 'number_of_units', 'income_type', 'tenancy_type'];
     let csv = headers.join(',') + '\n';
     
     // Add property data
@@ -182,9 +245,9 @@ const PropertySheet: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     // Create CSV template
-    const headers = ['address', 'city', 'state', 'zipcode', 'price', 'bedrooms', 'bathrooms', 'sqft', 'yearbuilt', 'caprate', 'cashflow', 'cocreturn'];
+    const headers = ['property_title', 'address', 'city', 'province', 'postal_code', 'purchase_price', 'number_of_units', 'income_type', 'tenancy_type'];
     const template = headers.join(',') + '\n' + 
-      '123 Main St,Anytown,CA,12345,250000,3,2,1500,2005,5.5,250,8.2';
+      'Sample Property,123 Main St,Toronto,Ontario,M5V3A8,500000,2,Estimated,On Leases';
     
     // Create download link
     const blob = new Blob([template], { type: 'text/csv' });
@@ -194,6 +257,21 @@ const PropertySheet: React.FC = () => {
     a.setAttribute('download', 'property_template.csv');
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Calculate total monthly rent for a property
+  const calculateTotalRent = (property: Property) => {
+    return property.units.reduce((total, unit) => {
+      const rent = unit.vacancyStatus === 'Vacant' ? (unit.projectedRent || 0) : unit.rentAmount;
+      return total + rent;
+    }, 0);
+  };
+
+  // Calculate total monthly expenses
+  const calculateTotalExpenses = (property: Property) => {
+    return (property.property_taxes || 0) + (property.insurance || 0) + (property.hydro || 0) + 
+           (property.gas || 0) + (property.water || 0) + (property.waste_management || 0) + 
+           (property.maintenance || 0) + (property.management_fees || 0) + (property.miscellaneous || 0);
   };
 
   return (
@@ -256,53 +334,61 @@ const PropertySheet: React.FC = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
+                <th className="px-4 py-3 font-medium text-gray-600">Property Title</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Address</th>
-                <th className="px-4 py-3 font-medium text-gray-600">City</th>
-                <th className="px-4 py-3 font-medium text-gray-600">State</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Price</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Beds/Baths</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Sqft</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Cap Rate</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Cash Flow</th>
-                <th className="px-4 py-3 font-medium text-gray-600">CoC Return</th>
+                <th className="px-4 py-3 font-medium text-gray-600">City/Province</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Purchase Price</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Units</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Monthly Rent</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Monthly Expenses</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Net Cash Flow</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                     Loading properties...
                   </td>
                 </tr>
               ) : properties.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
-                    No properties found. Import some properties to get started.
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    No properties found. Add some properties to get started.
                   </td>
                 </tr>
               ) : (
-                properties.map((property, index) => (
-                  <tr
-                    key={property.id || index}
-                    className={`hover:bg-gray-50 border-t border-gray-100 ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-800">{property.address}</td>
-                    <td className="px-4 py-3 text-gray-600">{property.city}</td>
-                    <td className="px-4 py-3 text-gray-600">{property.state}</td>
-                    <td className="px-4 py-3 text-gray-800">
-                      ${property.price.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{property.bedrooms}/{property.bathrooms}</td>
-                    <td className="px-4 py-3 text-gray-600">{property.sqft.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-blue-600 font-medium">{property.caprate}%</td>
-                    <td className="px-4 py-3 text-green-600 font-medium">
-                      ${property.cashflow}/mo
-                    </td>
-                    <td className="px-4 py-3 text-blue-600 font-medium">{property.cocreturn}%</td>
-                  </tr>
-                ))
+                properties.map((property, index) => {
+                  const totalRent = calculateTotalRent(property);
+                  const totalExpenses = calculateTotalExpenses(property);
+                  const netCashFlow = totalRent - totalExpenses;
+                  
+                  return (
+                    <tr
+                      key={property.id || index}
+                      className={`hover:bg-gray-50 border-t border-gray-100 ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                      }`}
+                    >
+                      <td className="px-4 py-3 font-medium text-gray-800">{property.property_title}</td>
+                      <td className="px-4 py-3 text-gray-600">{property.address}</td>
+                      <td className="px-4 py-3 text-gray-600">{property.city}, {property.province}</td>
+                      <td className="px-4 py-3 text-gray-800">
+                        ${property.purchase_price.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{property.number_of_units}</td>
+                      <td className="px-4 py-3 text-green-600 font-medium">
+                        ${totalRent.toLocaleString()}/mo
+                      </td>
+                      <td className="px-4 py-3 text-red-600 font-medium">
+                        ${totalExpenses.toLocaleString()}/mo
+                      </td>
+                      <td className={`px-4 py-3 font-medium ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${netCashFlow.toLocaleString()}/mo
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -323,7 +409,7 @@ const PropertySheet: React.FC = () => {
             </div>
 
             <p className="mb-4 text-gray-600">
-              Upload a CSV file containing property data. The file should include headers for address, city, state, etc.
+              Upload a CSV file containing property data. The file should include headers for property_title, address, city, etc.
             </p>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-4">
