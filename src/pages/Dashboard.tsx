@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PlusCircle, ExternalLink, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { usePropertySearch } from '../hooks/usePropertySearch';
 import { MortgageParams } from '../utils/mortgageCalculations';
+import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 
 type Unit = {
   id: string;
@@ -69,9 +71,109 @@ const NewPropertyCard = () => {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAllProperties, setShowAllProperties] = useState(false);
+
+  // Parse URL search parameters into filters
+  const parseUrlFilters = (): PropertyFiltersType => {
+    const searchParams = new URLSearchParams(location.search);
+    const filters: PropertyFiltersType = {
+      // Set default values for dropdown fields
+      incomeType: 'All',
+      tenancyType: 'All',
+      rentCategory: 'All',
+      vacancyStatus: 'All'
+    };
+
+    // Parse mortgage parameters
+    const mortgageRate = searchParams.get('mortgageRate');
+    if (mortgageRate) filters.mortgageRate = parseFloat(mortgageRate);
+
+    const amortizationPeriod = searchParams.get('amortizationPeriod');
+    if (amortizationPeriod) filters.amortizationPeriod = parseInt(amortizationPeriod);
+
+    const downPaymentType = searchParams.get('downPaymentType');
+    if (downPaymentType && ['Percent', 'Fixed', 'All'].includes(downPaymentType)) {
+      filters.downPaymentType = downPaymentType as 'Percent' | 'Fixed' | 'All';
+    }
+
+    const downPaymentValue = searchParams.get('downPaymentValue');
+    if (downPaymentValue) filters.downPaymentValue = parseFloat(downPaymentValue);
+
+    // Parse financial filters
+    const priceMin = searchParams.get('priceMin');
+    if (priceMin) filters.priceMin = parseFloat(priceMin);
+
+    const priceMax = searchParams.get('priceMax');
+    if (priceMax) filters.priceMax = parseFloat(priceMax);
+
+    const cashFlowMin = searchParams.get('cashFlowMin');
+    if (cashFlowMin) filters.cashFlowMin = parseFloat(cashFlowMin);
+
+    const cashFlowMax = searchParams.get('cashFlowMax');
+    if (cashFlowMax) filters.cashFlowMax = parseFloat(cashFlowMax);
+
+    const roiMin = searchParams.get('roiMin');
+    if (roiMin) filters.roiMin = parseFloat(roiMin);
+
+    const roiMax = searchParams.get('roiMax');
+    if (roiMax) filters.roiMax = parseFloat(roiMax);
+
+    const capRateMin = searchParams.get('capRateMin');
+    if (capRateMin) filters.capRateMin = parseFloat(capRateMin);
+
+    const capRateMax = searchParams.get('capRateMax');
+    if (capRateMax) filters.capRateMax = parseFloat(capRateMax);
+
+    const debtServiceRatioMax = searchParams.get('debtServiceRatioMax');
+    if (debtServiceRatioMax) filters.debtServiceRatioMax = parseFloat(debtServiceRatioMax);
+
+    // Parse units range
+    const unitsMin = searchParams.get('unitsMin');
+    if (unitsMin) filters.unitsMin = parseInt(unitsMin);
+
+    const unitsMax = searchParams.get('unitsMax');
+    if (unitsMax) filters.unitsMax = parseInt(unitsMax);
+
+    // Parse location filters
+    const city = searchParams.get('city');
+    if (city) filters.city = city;
+
+    const province = searchParams.get('province');
+    if (province) filters.province = province;
+
+    // Parse property characteristics (override defaults if present in URL)
+    const incomeType = searchParams.get('incomeType');
+    if (incomeType && ['Actual', 'Estimated', 'Mixed', 'All'].includes(incomeType)) {
+      filters.incomeType = incomeType as 'Actual' | 'Estimated' | 'Mixed' | 'All';
+    }
+
+    const tenancyType = searchParams.get('tenancyType');
+    if (tenancyType && ['On Leases', 'Month to Month', 'Mixed', 'All'].includes(tenancyType)) {
+      filters.tenancyType = tenancyType as 'On Leases' | 'Month to Month' | 'Mixed' | 'All';
+    }
+
+    const rentCategory = searchParams.get('rentCategory');
+    if (rentCategory && ['Market Value', 'Under Market Value', 'All'].includes(rentCategory)) {
+      filters.rentCategory = rentCategory as 'Market Value' | 'Under Market Value' | 'All';
+    }
+
+    const vacancyStatus = searchParams.get('vacancyStatus');
+    if (vacancyStatus && ['Occupied', 'Vacant', 'All'].includes(vacancyStatus)) {
+      filters.vacancyStatus = vacancyStatus as 'Occupied' | 'Vacant' | 'All';
+    }
+
+    return filters;
+  };
+
+  const urlFilters = parseUrlFilters();
+
+  // Check if URL has advanced filter parameters to auto-expand filters
+  const hasAdvancedUrlFilters = Object.keys(urlFilters).some(key => 
+    !['priceMin', 'priceMax', 'cashFlowMin', 'cashFlowMax', 'city', 'unitsMin', 'unitsMax'].includes(key)
+  );
 
   const {
     filters,
@@ -80,7 +182,14 @@ const Dashboard: React.FC = () => {
     handleSearch,
     isFiltersExpanded,
     setIsFiltersExpanded
-  } = usePropertySearch(allProperties);
+  } = usePropertySearch(allProperties, urlFilters);
+
+  // Auto-expand filters if advanced filters are present in URL
+  useEffect(() => {
+    if (hasAdvancedUrlFilters && !isFiltersExpanded) {
+      setIsFiltersExpanded(true);
+    }
+  }, [hasAdvancedUrlFilters, isFiltersExpanded, setIsFiltersExpanded]);
 
   useEffect(() => {
     if (user) {
@@ -168,6 +277,12 @@ const Dashboard: React.FC = () => {
   
   return (
     <div className="pt-16 md:pt-20 pb-16">
+      <LoadingSpinner 
+        isVisible={isLoading}
+        message="Loading your properties..."
+        variant="overlay"
+      />
+
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -193,43 +308,43 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <PropertyFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onSearch={handleSearch}
-          isExpanded={isFiltersExpanded}
-          onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
-        />
+        {!isLoading && (
+          <PropertyFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onSearch={handleSearch}
+            isExpanded={isFiltersExpanded}
+            onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+          />
+        )}
 
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-sm text-gray-600">
-            Found {filteredProperties.length} properties
-            {filteredProperties.length !== allProperties.length && ` of ${allProperties.length} total`}
+        {!isLoading && (
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm text-gray-600">
+              Found {filteredProperties.length} properties
+              {filteredProperties.length !== allProperties.length && ` of ${allProperties.length} total`}
+            </div>
+            {filteredProperties.length > 6 && !showAllProperties && (
+              <button
+                onClick={() => setShowAllProperties(true)}
+                className="text-primary-600 hover:text-primary-800 text-sm"
+              >
+                Show all {filteredProperties.length} results
+              </button>
+            )}
+            {showAllProperties && (
+              <button
+                onClick={() => setShowAllProperties(false)}
+                className="text-primary-600 hover:text-primary-800 text-sm"
+              >
+                Show featured only
+              </button>
+            )}
           </div>
-          {filteredProperties.length > 6 && !showAllProperties && (
-            <button
-              onClick={() => setShowAllProperties(true)}
-              className="text-primary-600 hover:text-primary-800 text-sm"
-            >
-              Show all {filteredProperties.length} results
-            </button>
-          )}
-          {showAllProperties && (
-            <button
-              onClick={() => setShowAllProperties(false)}
-              className="text-primary-600 hover:text-primary-800 text-sm"
-            >
-              Show featured only
-            </button>
-          )}
-        </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {isLoading ? (
-            <div className="col-span-full text-center py-8 text-gray-500">
-              Loading properties...
-            </div>
-          ) : (
+          {!isLoading && (
             <>
               {!showAllProperties && <NewPropertyCard />}
               {displayProperties.map(property => (
@@ -240,65 +355,70 @@ const Dashboard: React.FC = () => {
                     ...dynamicMortgageParams,
                     purchasePrice: property.purchase_price
                   } : undefined}
+                  currentFilters={filters}
                 />
               ))}
             </>
           )}
         </div>
 
-        {showAllProperties && (
+        {!isLoading && showAllProperties && (
           <div className="mt-6 text-center">
             <NewPropertyCard />
           </div>
         )}
         
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-primary-700 mb-2">Property Spreadsheet</h2>
-              <p className="text-gray-600">
-                Manage multiple properties in a spreadsheet format. Import or export property data in bulk.
-              </p>
-            </div>
-            <Link
-              to="/properties"
-              className="mt-4 md:mt-0 bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded flex items-center"
-            >
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Open Property Sheet
-            </Link>
-          </div>
-          
-          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-primary-200 transition-colors">
-            <div className="flex flex-col md:flex-row items-start md:items-center">
-              <div className="bg-primary-100 p-3 rounded-lg mb-4 md:mb-0 md:mr-6">
-                <FileSpreadsheet className="h-8 w-8 text-primary-500" />
-              </div>
+        {!isLoading && (
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
               <div>
-                <h3 className="text-lg font-medium mb-1">Bulk Property Management</h3>
-                <p className="text-gray-600 mb-4">
-                  Import property data from CSV files, manage them in a spreadsheet view, and export them for your records.
+                <h2 className="text-xl font-semibold text-primary-700 mb-2">Property Spreadsheet</h2>
+                <p className="text-gray-600">
+                  Manage multiple properties in a spreadsheet format. Import or export property data in bulk.
                 </p>
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    to="/properties"
-                    className="text-primary-600 hover:text-primary-800 flex items-center"
-                  >
-                    <span>Go to Property Sheet</span>
-                    <ExternalLink className="ml-1 h-4 w-4" />
-                  </Link>
+              </div>
+              <Link
+                to="/properties"
+                className="mt-4 md:mt-0 bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded flex items-center"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Open Property Sheet
+              </Link>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-primary-200 transition-colors">
+              <div className="flex flex-col md:flex-row items-start md:items-center">
+                <div className="bg-primary-100 p-3 rounded-lg mb-4 md:mb-0 md:mr-6">
+                  <FileSpreadsheet className="h-8 w-8 text-primary-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-1">Bulk Property Management</h3>
+                  <p className="text-gray-600 mb-4">
+                    Import property data from CSV files, manage them in a spreadsheet view, and export them for your records.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      to="/properties"
+                      className="text-primary-600 hover:text-primary-800 flex items-center"
+                    >
+                      <span>Go to Property Sheet</span>
+                      <ExternalLink className="ml-1 h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         
-        <div className="mt-12 md:mt-16 text-center">
-          <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800 touch-target">
-            Learn how to analyze investment properties with IncomePlus
-            <ExternalLink className="ml-1 h-4 w-4" />
-          </a>
-        </div>
+        {!isLoading && (
+          <div className="mt-12 md:mt-16 text-center">
+            <a href="#" className="inline-flex items-center text-primary-600 hover:text-primary-800 touch-target">
+              Learn how to analyze investment properties with IncomePlus
+              <ExternalLink className="ml-1 h-4 w-4" />
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

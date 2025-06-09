@@ -2,8 +2,50 @@ import { useState, useMemo } from 'react';
 import { PropertyFilters, defaultFilters } from '../types/filters';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 
-export const usePropertySearch = (properties: any[]) => {
-  const [filters, setFilters] = useState<PropertyFilters>(defaultFilters);
+type Unit = {
+  id: string;
+  unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
+  rentAmount: number;
+  rentCategory: 'Market Value' | 'Under Market Value';
+  vacancyStatus: 'Occupied' | 'Vacant';
+  projectedRent?: number;
+};
+
+type Property = {
+  id: string;
+  property_title: string;
+  address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  purchase_price: number;
+  number_of_units: number;
+  property_description: string;
+  income_type: 'Estimated' | 'Actual' | 'Mixed';
+  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
+  units: Unit[];
+  property_taxes: number;
+  insurance: number;
+  hydro: number;
+  gas: number;
+  water: number;
+  waste_management: number;
+  maintenance: number;
+  management_fees: number;
+  miscellaneous: number;
+  down_payment_type: 'Percent' | 'Fixed';
+  down_payment_amount: number;
+  amortization_period: number;
+  mortgage_rate: number;
+  images: string[];
+  agent_name: string;
+  agent_email: string;
+  agent_phone: string;
+  created_at: string;
+};
+
+export const usePropertySearch = (properties: Property[], initialFilters?: PropertyFilters) => {
+  const [filters, setFilters] = useState<PropertyFilters>(initialFilters || defaultFilters);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   const filteredProperties = useMemo(() => {
@@ -62,12 +104,12 @@ export const usePropertySearch = (properties: any[]) => {
 
       // Unit-level filters (check if any unit matches the criteria)
       if (filters.rentCategory && filters.rentCategory !== 'All') {
-        const hasMatchingUnit = property.units?.some((unit: any) => unit.rentCategory === filters.rentCategory);
+        const hasMatchingUnit = property.units?.some((unit: Unit) => unit.rentCategory === filters.rentCategory);
         if (!hasMatchingUnit) return false;
       }
 
       if (filters.vacancyStatus && filters.vacancyStatus !== 'All') {
-        const hasMatchingUnit = property.units?.some((unit: any) => unit.vacancyStatus === filters.vacancyStatus);
+        const hasMatchingUnit = property.units?.some((unit: Unit) => unit.vacancyStatus === filters.vacancyStatus);
         if (!hasMatchingUnit) return false;
       }
 

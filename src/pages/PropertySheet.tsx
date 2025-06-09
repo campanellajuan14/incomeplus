@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, Download, File, X, Check, AlertCircle, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 type Unit = {
   id: string;
@@ -276,6 +277,12 @@ const PropertySheet: React.FC = () => {
 
   return (
     <div className="pt-16 md:pt-20 pb-16">
+      <LoadingSpinner 
+        isVisible={isLoading}
+        message={isLoading && showImportModal ? "Importing properties..." : "Loading properties..."}
+        variant="overlay"
+      />
+
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
@@ -345,20 +352,14 @@ const PropertySheet: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                    Loading properties...
-                  </td>
-                </tr>
-              ) : properties.length === 0 ? (
+              {!isLoading && properties.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                     No properties found. Add some properties to get started.
                   </td>
                 </tr>
               ) : (
-                properties.map((property, index) => {
+                !isLoading && properties.map((property, index) => {
                   const totalRent = calculateTotalRent(property);
                   const totalExpenses = calculateTotalExpenses(property);
                   const netCashFlow = totalRent - totalExpenses;

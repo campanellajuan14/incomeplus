@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -14,13 +13,20 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ScrollIndicator from './components/ScrollIndicator';
 import ScrollToTop from './components/ScrollToTop';
 import SmoothScroll from './components/SmoothScroll';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Protected Route component that redirects to login if not authenticated
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return (
+      <LoadingSpinner 
+        isVisible={loading}
+        message="Authenticating..."
+        variant="overlay"
+      />
+    );
   }
   
   if (!user) {
@@ -35,7 +41,13 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return (
+      <LoadingSpinner 
+        isVisible={loading}
+        message="Loading..."
+        variant="overlay"
+      />
+    );
   }
   
   if (user) {

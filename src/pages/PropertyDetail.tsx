@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Users, TrendingUp, Home, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 
 type Unit = {
@@ -51,6 +51,7 @@ type Property = {
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -123,7 +124,7 @@ const PropertyDetail: React.FC = () => {
 
         setProperty(transformedProperty);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching property:', err);
       setError('Failed to load property details.');
     } finally {
@@ -143,12 +144,23 @@ const PropertyDetail: React.FC = () => {
     }
   };
 
+  // Preserve search parameters when navigating back
+  const handleBackToDashboard = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const dashboardUrl = searchParams.toString() 
+      ? `/dashboard?${searchParams.toString()}` 
+      : '/dashboard';
+    navigate(dashboardUrl);
+  };
+
   if (isLoading) {
     return (
       <div className="pt-16 md:pt-20 pb-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center py-8">Loading property details...</div>
-        </div>
+        <LoadingSpinner 
+          isVisible={isLoading}
+          message="Loading property details..."
+          variant="overlay"
+        />
       </div>
     );
   }
@@ -161,9 +173,12 @@ const PropertyDetail: React.FC = () => {
             {error || 'Property not found'}
           </div>
           <div className="text-center">
-            <Link to="/dashboard" className="text-primary-600 hover:text-primary-800">
+            <button 
+              onClick={handleBackToDashboard}
+              className="text-primary-600 hover:text-primary-800 cursor-pointer"
+            >
               Return to Dashboard
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -171,11 +186,19 @@ const PropertyDetail: React.FC = () => {
   }
 
   // Calculate financial metrics
+  // Check for search parameters in URL
+  const searchParams = new URLSearchParams(location.search);
+  const urlMortgageRate = searchParams.get('mortgageRate');
+  const urlAmortizationPeriod = searchParams.get('amortizationPeriod');
+  const urlDownPaymentType = searchParams.get('downPaymentType');
+  const urlDownPaymentValue = searchParams.get('downPaymentValue');
+
+  // Use URL parameters if they exist, otherwise use property defaults
   const mortgageParams: MortgageParams = {
-    mortgageRate: property.mortgage_rate,
-    amortizationPeriod: property.amortization_period,
-    downPaymentType: property.down_payment_type,
-    downPaymentValue: property.down_payment_amount,
+    mortgageRate: urlMortgageRate ? parseFloat(urlMortgageRate) : property.mortgage_rate,
+    amortizationPeriod: urlAmortizationPeriod ? parseInt(urlAmortizationPeriod) : property.amortization_period,
+    downPaymentType: (urlDownPaymentType as 'Percent' | 'Fixed') || property.down_payment_type,
+    downPaymentValue: urlDownPaymentValue ? parseFloat(urlDownPaymentValue) : property.down_payment_amount,
     purchasePrice: property.purchase_price
   };
 
@@ -186,7 +209,7 @@ const PropertyDetail: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center mb-6">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={handleBackToDashboard}
             className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
@@ -332,7 +355,14 @@ const PropertyDetail: React.FC = () => {
 
           <div>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h3 className="font-semibold text-xl mb-4">Purchase Details</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-xl">Purchase Details</h3>
+                {(urlMortgageRate || urlAmortizationPeriod || urlDownPaymentType || urlDownPaymentValue) && (
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    Using Search Criteria
+                  </span>
+                )}
+              </div>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Purchase Price:</span>
@@ -343,18 +373,31 @@ const PropertyDetail: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Down Payment:</span>
                   <span className="font-medium">
-                    {property.down_payment_type === 'Percent' 
-                      ? `${property.down_payment_amount}%` 
-                      : `$${property.down_payment_amount.toLocaleString()}`}
+                    {mortgageParams.downPaymentType === 'Percent' 
+                      ? `${mortgageParams.downPaymentValue}%` 
+                      : `$${mortgageParams.downPaymentValue.toLocaleString()}`}
+                    {urlDownPaymentType && (
+                      <span className="text-blue-600 text-xs ml-1">(Search)</span>
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mortgage Rate:</span>
-                  <span className="font-medium">{property.mortgage_rate}%</span>
+                  <span className="font-medium">
+                    {mortgageParams.mortgageRate}%
+                    {urlMortgageRate && (
+                      <span className="text-blue-600 text-xs ml-1">(Search)</span>
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amortization:</span>
-                  <span className="font-medium">{property.amortization_period} years</span>
+                  <span className="font-medium">
+                    {mortgageParams.amortizationPeriod} years
+                    {urlAmortizationPeriod && (
+                      <span className="text-blue-600 text-xs ml-1">(Search)</span>
+                    )}
+                  </span>
                 </div>
               </div>
             </div>

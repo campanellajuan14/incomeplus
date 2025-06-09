@@ -68,7 +68,9 @@ const Header: React.FC = () => {
           />
         </Link>
 
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
+          {/* Show different navigation items based on authentication status */}
           {user ? (
             // Show only Dashboard and Properties Sheet when logged in
             [
@@ -181,6 +183,7 @@ const Header: React.FC = () => {
             </>
           )}
           
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 hover:scale-105"
@@ -197,6 +200,7 @@ const Header: React.FC = () => {
         </div>
       </div>
       
+      {/* Mobile Navigation */}
       <div 
         id="mobile-menu"
         ref={menuRef}
@@ -213,6 +217,7 @@ const Header: React.FC = () => {
             </div>
           )}
         
+          {/* Show different navigation items for mobile based on authentication status */}
           {user ? (
             // Show only Dashboard and Properties Sheet when logged in (mobile)
             [
