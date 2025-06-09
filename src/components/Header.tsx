@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, BarChart2, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
+import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
@@ -57,13 +58,14 @@ const Header: React.FC = () => {
       <div className="container flex items-center justify-between">
         <Link 
           to="/" 
-          className="flex items-center space-x-2 relative z-10"
+          className="flex items-center relative z-10"
           aria-label="IncomePlus Home"
         >
-          <div className="bg-primary-500 text-white p-1 xs:p-1.5 rounded">
-            <BarChart2 className="h-5 w-5 xs:h-6 xs:w-6" />
-          </div>
-          <span className="font-bold text-lg xs:text-xl text-primary-700">IncomePlus</span>
+          <img 
+            src="/lovable-uploads/d63f3e54-8fc1-4eed-bbd0-a2fde47ccb2a.png" 
+            alt="IncomePlus Logo" 
+            className="h-8 sm:h-10"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 lg:space-x-10">
@@ -205,7 +207,7 @@ const Header: React.FC = () => {
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <item.icon className="h-5 w-5 mr-3" />
+                {item.icon && <item.icon className="h-5 w-5 mr-3" />}
                 {item.label}
               </Link>
             ))
