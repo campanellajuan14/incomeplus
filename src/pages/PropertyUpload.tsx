@@ -354,15 +354,6 @@ const PropertyUpload: React.FC = () => {
           </div>
         )}
         
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
-            <div><strong>Debug Info:</strong></div>
-            <div>User ID: {user?.id || 'Not logged in'}</div>
-            <div>Selected Images: {imageFiles.length}</div>
-            <div>Form Valid: {property.property_title && property.address && imageFiles.length > 0 ? 'Yes' : 'No'}</div>
-          </div>
-        )}
-        
         <div className="bg-white rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-8">
             
