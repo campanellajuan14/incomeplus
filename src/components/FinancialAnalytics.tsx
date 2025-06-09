@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { PieChart, DollarSign, TrendingUp, ArrowRight } from 'lucide-react';
+import { PieChart, DollarSign, TrendingUp } from 'lucide-react';
 
 const FinancialAnalytics: React.FC = () => {
   const [ref, inView] = useInView({
@@ -11,16 +10,9 @@ const FinancialAnalytics: React.FC = () => {
   });
 
   return (
-    <section ref={ref} id="financial-analytics" className="section py-24 bg-gray-50 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 to-transparent"></div>
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-accent-50 rounded-full opacity-70 blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-secondary-50 rounded-full opacity-70 blur-3xl"></div>
-      
+    <section ref={ref} id="financial-analytics" className="section py-24 bg-white relative overflow-hidden">
       <div className="container relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-4 py-1 mb-4 text-sm font-medium bg-primary-50 rounded-full text-primary-700">
-            Financial Analytics
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
             Fine-tune your investment strategy with precise financial tools
           </h2>
@@ -48,7 +40,7 @@ const FinancialAnalytics: React.FC = () => {
                 className="w-full h-auto"
               />
               
-              <div className="absolute top-6 left-6 p-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg max-w-[200px]">
+              <div className="absolute top-6 left-6 p-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg max-w-[200px]">
                 <h4 className="font-semibold text-sm mb-2 text-gray-800">Monthly Cash Flow</h4>
                 <div className="h-2 w-full bg-gray-200 rounded-full mb-1">
                   <div className="h-2 bg-green-500 rounded-full" style={{ width: '70%' }}></div>
@@ -60,7 +52,7 @@ const FinancialAnalytics: React.FC = () => {
                 </div>
               </div>
               
-              <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg">
+              <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 bg-primary-500 rounded-full flex items-center justify-center text-white">
                     <TrendingUp className="h-4 w-4" />
@@ -101,40 +93,39 @@ const FinancialAnalytics: React.FC = () => {
           >
             <div className="space-y-8">
               <div className="space-y-4">
-                <div className="bg-primary-50 p-3 rounded-full inline-block">
-                  <PieChart className="h-6 w-6 text-primary-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800">Comprehensive Financial Analysis</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <div className="bg-primary-50 p-3 rounded-full inline-block">
+                    <PieChart className="h-6 w-6 text-primary-600" />
+                  </div>
+                Comprehensive Financial Analysis</h3>
+                <p className="text-gray-600 leading-relaxed">
                   Get detailed metrics including cash flow, cap rate, ROI, cash-on-cash return, and internal rate of return. Understand your investment's potential from every angle.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-primary-50 p-3 rounded-full inline-block">
-                  <DollarSign className="h-6 w-6 text-primary-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800">Intelligent Expense Forecasting</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <div className="bg-primary-50 p-3 rounded-full inline-block">
+                    <DollarSign className="h-6 w-6 text-primary-600" />
+                  </div>
+                  Intelligent Expense Forecasting</h3>
+                <p className="text-gray-600 leading-relaxed">
                   Our AI-powered algorithms accurately forecast all property expenses including maintenance, insurance, property taxes, HOA fees, and more. Plan for all potential costs.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-primary-50 p-3 rounded-full inline-block">
-                  <TrendingUp className="h-6 w-6 text-primary-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800">Smart Long-term Projections</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <div className="bg-primary-50 p-3 rounded-full inline-block">
+                    <TrendingUp className="h-6 w-6 text-primary-600" />
+                  </div>
+                  Smart Long-term Projections
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
                   See how your investment performs over time with year-by-year projections. Account for appreciation, inflation, and rent increases with adjustable parameters.
                 </p>
               </div>
             </div>
-            
-            <button className="btn btn-primary flex items-center gap-2 group">
-              <span>Explore All Features</span>
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </button>
           </motion.div>
         </motion.div>
       </div>

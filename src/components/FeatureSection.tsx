@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
@@ -7,7 +6,8 @@ import {
   Calculator, 
   Building, 
   LineChart, 
-  ArrowUpRight 
+  ArrowUpRight,
+  ChevronRight
 } from 'lucide-react';
 
 const features = [
@@ -70,15 +70,9 @@ const FeatureSection = () => {
   };
 
   return (
-    <section id="features" className="section bg-gray-50 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary-100 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-50"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent-100 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl opacity-60"></div>
-      
+    <section id="features" className="section bg-white relative overflow-hidden py-16">
       <div className="container relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-4 py-1.5 mb-4 text-sm font-medium bg-primary-100 rounded-full text-primary-700">
-            Features
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Powerful tools for investment analysis
           </h2>
@@ -98,23 +92,23 @@ const FeatureSection = () => {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="feature-card group hover:translate-y-[-5px]"
+              whileHover={{ y: -8 }}
+              className="feature-card group bg-white rounded-lg p-6 border border-gray-200 transition-all duration-300 hover:shadow-lg hover:border-primary-200"
+              role="button"
+              tabIndex={0}
+              aria-label={`Learn more about ${feature.title}`}
             >
-              <div className="mb-5 p-3 bg-primary-50 rounded-xl inline-block group-hover:bg-primary-100 transition-colors">
+              <div className="mb-5 p-3 bg-primary-50 rounded-xl inline-flex items-center justify-center group-hover:bg-primary-100 transition-colors">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-xl font-semibold mb-3 group-hover:text-primary-600 transition-colors">{feature.title}</h3>
+              <p className="text-gray-600 mb-4">{feature.description}</p>
+              <div className="flex items-center text-primary-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
+                Learn more <ChevronRight className="h-4 w-4 ml-1" />
+              </div>
             </motion.div>
           ))}
         </motion.div>
-
-        <div className="flex justify-center mt-10">
-          <a href="/features" className="btn btn-primary flex items-center gap-2">
-            <span>Explore All Features</span>
-            <ArrowUpRight className="w-4 h-4" />
-          </a>
-        </div>
       </div>
     </section>
   );
