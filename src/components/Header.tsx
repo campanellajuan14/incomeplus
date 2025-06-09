@@ -70,6 +70,7 @@ const Header: React.FC = () => {
 
         <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
           {user ? (
+            // Show only Dashboard and Properties Sheet when logged in
             [
               { path: '/dashboard', label: 'Dashboard' },
               { path: '/properties', label: 'Properties Sheet' }
@@ -213,6 +214,7 @@ const Header: React.FC = () => {
           )}
         
           {user ? (
+            // Show only Dashboard and Properties Sheet when logged in (mobile)
             [
               { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
               { path: '/properties', label: 'Properties Sheet', icon: FileSpreadsheet }

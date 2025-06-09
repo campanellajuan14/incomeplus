@@ -149,13 +149,19 @@ const Dashboard: React.FC = () => {
   };
 
   // Create dynamic mortgage parameters from current filters
-  const dynamicMortgageParams: MortgageParams = {
+  // If no filters are applied, use null to let individual properties use their own parameters
+  const hasFilters = filters.mortgageRate !== undefined || 
+                     filters.amortizationPeriod !== undefined || 
+                     filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined ||
+                     filters.downPaymentValue !== undefined;
+
+  const dynamicMortgageParams: MortgageParams | null = hasFilters ? {
     mortgageRate: filters.mortgageRate || 5.5,
     amortizationPeriod: filters.amortizationPeriod || 25,
     downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
     downPaymentValue: filters.downPaymentValue || 20,
     purchasePrice: 0 // This will be set per property
-  };
+  } : null;
 
   // Determine which properties to display
   const displayProperties = showAllProperties ? filteredProperties : filteredProperties.slice(0, 6);
@@ -230,10 +236,10 @@ const Dashboard: React.FC = () => {
                 <EnhancedPropertyCard 
                   key={property.id} 
                   property={property} 
-                  dynamicMortgageParams={{
+                  dynamicMortgageParams={dynamicMortgageParams ? {
                     ...dynamicMortgageParams,
                     purchasePrice: property.purchase_price
-                  }}
+                  } : undefined}
                 />
               ))}
             </>
