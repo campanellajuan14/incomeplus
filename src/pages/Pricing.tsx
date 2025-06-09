@@ -204,6 +204,7 @@ const Pricing: React.FC = () => {
         </div>
       </section>
 
+      {/* CTA Section */}
       <section className="py-16 bg-primary-500 text-white">
         <div className="container text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">

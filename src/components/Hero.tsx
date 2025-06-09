@@ -1,8 +1,22 @@
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, CheckCircle } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const Hero = () => {
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  // Function to handle the "Watch Demo" button click
+  const handleWatchDemo = () => {
+    setShowVideoModal(true);
+  };
+
+  // Close modal function
+  const closeModal = () => {
+    setShowVideoModal(false);
+  };
+
   return (
     <section className="relative min-h-screen flex items-center bg-gradient-to-br from-primary-600 to-primary-900 overflow-hidden">
       <div className="absolute inset-0 opacity-20">
@@ -53,11 +67,14 @@ const Hero = () => {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="flex flex-wrap gap-4 justify-center lg:justify-start"
             >
-              <button className="btn bg-white text-primary-600 hover:bg-white/90 shadow-xl shadow-primary-900/20 flex items-center justify-center gap-2 group">
+              <Link to="/auth" className="btn bg-white text-primary-600 hover:bg-white/90 shadow-xl shadow-primary-900/20 flex items-center justify-center gap-2 group">
                 <span>Get Started Free</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="btn bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center gap-2">
+              </Link>
+              <button 
+                className="btn bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center gap-2"
+                onClick={handleWatchDemo}
+              >
                 <Play className="w-5 h-5" />
                 <span>Watch Demo</span>
               </button>
@@ -130,6 +147,30 @@ const Hero = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
       </div>
+
+      {showVideoModal && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-4xl">
+            <div className="absolute top-4 right-4 z-10">
+              <button 
+                onClick={closeModal}
+                className="bg-white/20 hover:bg-white/40 rounded-full p-2 text-white backdrop-blur-sm transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="aspect-video w-full">
+              <iframe
+                className="w-full h-full rounded-lg"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                title="Property Investment Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
