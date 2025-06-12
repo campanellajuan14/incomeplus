@@ -18,39 +18,85 @@ const PricingTier: React.FC<PricingTierProps> = ({
   isPopular = false,
   ctaText = 'Start Your Trial'
 }) => (
-  <div className={`relative overflow-hidden bg-white backdrop-blur-sm rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 ${
+  <div className={`relative overflow-hidden bg-white backdrop-blur-sm rounded-xl shadow-xl p-8 border-2 transition-all duration-300 ease-out flex flex-col h-full ${
     isPopular 
-      ? 'border-2 border-accent-400 transform hover:-translate-y-1' 
-      : 'border border-gray-100 hover:-translate-y-1'
+      ? 'border-accent-400 hover:border-accent-500' 
+      : 'border-gray-100 hover:border-primary-300'
   }`}>
     {isPopular && (
-      <div className="absolute top-0 right-0 bg-accent-400 text-white px-4 py-1 rounded-bl-lg rounded-tr-lg text-sm font-medium">
-        Most Popular
+      <div className="absolute top-4 -right-2 bg-red-500 text-white px-6 py-2 text-sm font-semibold transform rotate-12 shadow-lg">
+        <div className="relative">
+          Most Popular
+          <div className="absolute -left-1 top-full w-0 h-0 border-l-4 border-l-transparent border-t-4 border-t-red-600"></div>
+          <div className="absolute -right-1 top-full w-0 h-0 border-r-4 border-r-transparent border-t-4 border-t-red-600"></div>
+        </div>
       </div>
     )}
-    <h3 className="text-2xl font-bold mb-4 text-primary-800">{title}</h3>
-    <div className="mb-6">
-      {typeof price === 'number' ? (
-        <>
-          <span className="text-4xl font-bold text-primary-700">${price}</span>
-          <span className="text-gray-500">{price === 650 ? '/year' : '/mo'}</span>
-        </>
-      ) : (
-        <span className="text-4xl font-bold text-primary-700">{price}</span>
-      )}
+    <div className="text-center mb-8 pb-6 border-b border-gray-100">
+      <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 ${
+        isPopular 
+          ? 'bg-accent-100 text-accent-700' 
+          : 'bg-primary-100 text-primary-700'
+      }`}>
+        {title}
+      </div>
+      
+      <div className="mb-3">
+        {typeof price === 'number' ? (
+          <div className="space-y-1">
+            <div className="flex items-end justify-center gap-2">
+              <span className="text-6xl font-black text-gray-900 leading-none">${price}</span>
+              <span className="text-xl text-gray-600 font-medium pb-2">{price === 650 ? '/year' : '/month'}</span>
+            </div>
+            {price === 650 && (
+              <div className="text-sm text-gray-500">
+                <span className="line-through">${Math.round(65 * 12)}/year</span>
+                <span className="ml-2 text-accent-600 font-semibold">Save $130</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-4xl font-black text-gray-900">{price}</div>
+        )}
+      </div>
+      
+      <div className="text-sm text-gray-500">
+        {typeof price === 'number' && price === 650 && 'Paid annually'}
+        {typeof price === 'number' && price !== 650 && 'Billed monthly, cancel anytime'}
+        {typeof price !== 'number' && 'Custom pricing available'}
+      </div>
     </div>
-    <ul className="space-y-4 mb-8">
-      {features.map((feature: string, index: number) => (
-        <li key={index} className="flex items-start gap-2">
-          <Check className="h-5 w-5 text-accent-500 mt-1 flex-shrink-0" />
-          <span className="text-gray-600">{feature}</span>
-        </li>
-      ))}
+        <ul className="space-y-3 mb-8 flex-grow">
+      {features.map((feature: string, index: number) => {
+        const isAvailable = !feature.startsWith('×');
+        const featureText = feature.startsWith('×') ? feature.substring(1).trim() : feature;
+        
+        return (
+          <li key={index} className="flex items-start gap-3">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 ${
+              isAvailable 
+                ? isPopular 
+                  ? 'bg-accent-500 text-white' 
+                  : 'bg-primary-500 text-white'
+                : 'bg-gray-200 text-gray-400'
+            }`}>
+              <Check className="h-3 w-3" />
+            </div>
+            <span className={`text-sm leading-relaxed ${
+              isAvailable 
+                ? 'text-gray-700' 
+                : 'text-gray-400'
+            }`}>
+              {featureText}
+            </span>
+          </li>
+        );
+      })}
     </ul>
-    <button className={`w-full py-3 rounded-lg font-medium transition-all duration-300 ${
+    <button className={`w-full py-3 rounded-lg font-medium transition-all duration-300 ease-out ${
       isPopular 
-        ? 'bg-accent-400 text-white hover:bg-accent-500 shadow-lg shadow-accent-400/20 transform hover:scale-[1.02]' 
-        : 'bg-primary-100 text-primary-700 hover:bg-primary-200 transform hover:scale-[1.02]'
+        ? 'bg-accent-400 text-white hover:bg-accent-500 hover:shadow-lg' 
+        : 'bg-primary-100 text-primary-700 hover:bg-primary-200 hover:shadow-sm'
     }`}>
       {ctaText}
     </button>
@@ -177,7 +223,7 @@ const Pricing: React.FC = () => {
 
   return (
     <main className="pt-20">
-      <section className="relative bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white py-20 overflow-hidden">
+      {/* <section className="relative bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-25">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://assets.website-files.com/5e51c674258ffe10d286d30a/5e5354c0c791125ec04d1a55_peakmoney-grid.svg')] opacity-5"></div>
           <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/30 blur-3xl animate-pulse" style={{ animationDuration: '15s' }}></div>
@@ -205,7 +251,7 @@ const Pricing: React.FC = () => {
             </motion.p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-20 -mt-10">
         <div className="container">
@@ -269,27 +315,6 @@ const Pricing: React.FC = () => {
               <FAQ key={index} {...faq} />
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="py-16 bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-25">
-          <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-white/30 blur-3xl animate-pulse" style={{ animationDuration: '15s' }}></div>
-          <div className="absolute bottom-1/3 left-1/3 w-72 h-72 rounded-full bg-accent-400/40 blur-3xl animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }}></div>
-          <div className="absolute top-20 left-0 w-80 h-80 rounded-full bg-secondary-500/30 blur-3xl animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }}></div>
-        </div>
-        
-        <div className="container relative z-10 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to get started?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of investors making better decisions with IncomePlus
-          </p>
-          <button className="px-8 py-4 bg-accent-400 hover:bg-accent-500 text-white rounded-full font-medium shadow-lg shadow-accent-500/20 flex items-center justify-center gap-2 group transition-all duration-300 hover:translate-y-[-2px] mx-auto">
-            <span>Start Your Free Trial</span>
-            <Check className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
         </div>
       </section>
     </main>
