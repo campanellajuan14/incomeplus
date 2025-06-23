@@ -222,22 +222,6 @@ const PropertyDetail: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {/* Property Map Section */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h3 className="font-semibold text-xl mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-primary-500" />
-                Property Location
-              </h3>
-              <PropertyMap
-                properties={[property]}
-                selectedPropertyId={property.id}
-                height="400px"
-                zoom={15}
-                enableClustering={false}
-                autoFit={false}
-              />
-            </div>
-
             {/* Existing image carousel section */}
             {property.images.length > 0 && (
               <div className="relative mb-6">
@@ -370,6 +354,22 @@ const PropertyDetail: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Property Map Section */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 mt-8">
+              <h3 className="font-semibold text-xl mb-4 flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-primary-500" />
+                Property Location
+              </h3>
+              <PropertyMap
+                properties={[property]}
+                selectedPropertyId={property.id}
+                height="400px"
+                zoom={15}
+                enableClustering={false}
+                autoFit={false}
+              />
             </div>
           </div>
 
