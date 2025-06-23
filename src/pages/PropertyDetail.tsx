@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
+import PropertyMap from '../components/PropertyMap';
 
 type Unit = {
   id: string;
@@ -221,6 +222,23 @@ const PropertyDetail: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {/* Property Map Section */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <h3 className="font-semibold text-xl mb-4 flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-primary-500" />
+                Property Location
+              </h3>
+              <PropertyMap
+                properties={[property]}
+                selectedPropertyId={property.id}
+                height="400px"
+                zoom={15}
+                enableClustering={false}
+                autoFit={false}
+              />
+            </div>
+
+            {/* Existing image carousel section */}
             {property.images.length > 0 && (
               <div className="relative mb-6">
                 <div className="relative h-96 rounded-lg overflow-hidden">
