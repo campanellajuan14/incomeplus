@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { useGoogleMaps } from '../hooks/useGoogleMaps';
 import LoadingSpinner from './LoadingSpinner';
 import { Property } from '../types/property';
@@ -15,7 +14,7 @@ interface PropertyMapProps {
   autoFit?: boolean;
 }
 
-const PropertyMap: React.FC<PropertyMapProps> = ({
+const PropertyMap: React.FC<PropertyMapProps> = memo(({
   properties,
   selectedPropertyId,
   onPropertySelect,
@@ -282,6 +281,18 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
       )}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  return (
+    JSON.stringify(prevProps.properties) === JSON.stringify(nextProps.properties) &&
+    prevProps.selectedPropertyId === nextProps.selectedPropertyId &&
+    prevProps.height === nextProps.height &&
+    JSON.stringify(prevProps.center) === JSON.stringify(nextProps.center) &&
+    prevProps.zoom === nextProps.zoom &&
+    prevProps.enableClustering === nextProps.enableClustering &&
+    prevProps.autoFit === nextProps.autoFit &&
+    prevProps.onPropertySelect === nextProps.onPropertySelect
+  );
+});
 
 export default PropertyMap;

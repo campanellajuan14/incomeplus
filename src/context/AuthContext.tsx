@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -49,8 +48,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log('Auth state changed:', event);
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
+        
+        // Only update state if there are actual changes
+        setSession(prevSession => {
+          if (JSON.stringify(prevSession) !== JSON.stringify(newSession)) {
+            return newSession;
+          }
+          return prevSession;
+        });
+        
+        setUser(prevUser => {
+          const newUser = newSession?.user ?? null;
+          if (JSON.stringify(prevUser) !== JSON.stringify(newUser)) {
+            return newUser;
+          }
+          return prevUser;
+        });
         
         // Defer data fetching to prevent deadlocks
         if (event === 'SIGNED_IN') {
