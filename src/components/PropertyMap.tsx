@@ -24,6 +24,8 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
   enableClustering = false,
   autoFit = false
 }) => {
+  // Auto-enable clustering for dense areas (10+ properties)
+  const shouldCluster = enableClustering || properties.length >= 10;
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -115,7 +117,7 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
 
       // Create AdvancedMarkerElement
       const marker = new window.google.maps.marker.AdvancedMarkerElement({
-        map: enableClustering ? null : mapInstanceRef.current,
+        map: shouldCluster ? null : mapInstanceRef.current,
         position: position,
         content: markerElement,
         title: property.property_title
@@ -198,13 +200,86 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
     });
 
     // Handle clustering and auto-fit after all markers are added
-    if (enableClustering && window.MarkerClusterer && markersRef.current.length > 0) {
-      markerClusterRef.current = new window.MarkerClusterer({
-        map: mapInstanceRef.current,
-        markers: markersRef.current,
-        gridSize: 60,
-        maxZoom: 15
-      });
+    if (shouldCluster && markersRef.current.length > 0) {
+      // Load MarkerClusterer dynamically if not available
+      if (typeof window.MarkerClusterer === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js';
+        script.onload = () => {
+          createClusterer();
+        };
+        document.head.appendChild(script);
+      } else {
+        createClusterer();
+      }
+      
+      function createClusterer() {
+        if (markerClusterRef.current) {
+          markerClusterRef.current.clearMarkers();
+        }
+        
+        // Create custom cluster renderer for better styling
+        const renderer = {
+          render: ({ count, position }: any, stats: any) => {
+            const color = count > 10 ? '#dc2626' : count > 5 ? '#ea580c' : '#2563eb';
+            const size = count > 20 ? 50 : count > 10 ? 45 : 40;
+            
+            return new window.google.maps.marker.AdvancedMarkerElement({
+              position,
+              content: createClusterIcon(count, color, size),
+              zIndex: Number(window.google.maps.Marker.MAX_ZINDEX) + count,
+            });
+          },
+        };
+        
+        markerClusterRef.current = new (window as any).MarkerClusterer({
+          map: mapInstanceRef.current,
+          markers: markersRef.current,
+          renderer: renderer,
+          algorithm: new (window as any).markerClusterer.SuperClusterAlgorithm({
+            radius: 80,
+            maxZoom: 16,
+            minPoints: 3
+          })
+        });
+      }
+      
+      function createClusterIcon(count: number, color: string, size: number) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', size.toString());
+        svg.setAttribute('height', size.toString());
+        svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+        
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', (size / 2).toString());
+        circle.setAttribute('cy', (size / 2).toString());
+        circle.setAttribute('r', (size / 2 - 2).toString());
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('stroke-width', '3');
+        circle.setAttribute('opacity', '0.9');
+        
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', (size / 2).toString());
+        text.setAttribute('y', (size / 2).toString());
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-family', 'Arial, sans-serif');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('font-size', (size / 3).toString());
+        text.textContent = count > 99 ? '99+' : count.toString();
+        
+        svg.appendChild(circle);
+        svg.appendChild(text);
+        
+        const container = document.createElement('div');
+        container.style.cursor = 'pointer';
+        container.style.transform = 'translate(-50%, -50%)';
+        container.appendChild(svg);
+        
+        return container;
+      }
     }
 
     // Auto-fit map to show all markers
@@ -243,7 +318,7 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
     return () => {
       window.removeEventListener('propertySelect', handlePropertySelect);
     };
-  }, [isMapReady, properties, selectedPropertyId, onPropertySelect, enableClustering, autoFit]);
+  }, [isMapReady, properties, selectedPropertyId, onPropertySelect, shouldCluster, autoFit]);
 
   if (error) {
     return (
