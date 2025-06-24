@@ -39,4 +39,6 @@ export type Property = {
   agent_email: string;
   agent_phone: string;
   created_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };

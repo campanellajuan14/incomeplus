@@ -6,6 +6,7 @@ import { supabase } from '../integrations/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 import PropertyMap from '../components/PropertyMap';
+import { useGeocoding } from '../hooks/useGeocoding';
 
 type Unit = {
   id: string;
@@ -47,6 +48,8 @@ type Property = {
   agent_email: string;
   agent_phone: string;
   created_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 const PropertyDetail: React.FC = () => {
@@ -54,6 +57,7 @@ const PropertyDetail: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { geocodeProperty, isGeocoding } = useGeocoding();
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,10 +126,33 @@ const PropertyDetail: React.FC = () => {
           agent_name: data.agent_name,
           agent_email: data.agent_email,
           agent_phone: data.agent_phone,
-          created_at: data.created_at
+          created_at: data.created_at,
+          latitude: data.latitude,
+          longitude: data.longitude
         };
 
         setProperty(transformedProperty);
+        
+        // Geocode property if coordinates are missing
+        if (!transformedProperty.latitude || !transformedProperty.longitude) {
+          console.log('Property missing coordinates, attempting to geocode...');
+          const geocodeResult = await geocodeProperty(
+            transformedProperty.id,
+            transformedProperty.address,
+            transformedProperty.city,
+            transformedProperty.province,
+            transformedProperty.postal_code
+          );
+          
+          if (geocodeResult.success) {
+            // Update the property state with new coordinates
+            setProperty(prev => prev ? {
+              ...prev,
+              latitude: geocodeResult.latitude,
+              longitude: geocodeResult.longitude
+            } : null);
+          }
+        }
       }
     } catch (err: unknown) {
       console.error('Error fetching property:', err);
@@ -162,6 +189,18 @@ const PropertyDetail: React.FC = () => {
         <LoadingSpinner 
           isVisible={isLoading}
           message="Loading property details..."
+          variant="overlay"
+        />
+      </div>
+    );
+  }
+
+  if (isGeocoding) {
+    return (
+      <div className="pt-16 md:pt-20 pb-16">
+        <LoadingSpinner 
+          isVisible={isGeocoding}
+          message="Getting property coordinates..."
           variant="overlay"
         />
       </div>

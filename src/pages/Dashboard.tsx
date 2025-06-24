@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
@@ -13,48 +12,8 @@ import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { useInfiniteProperties } from '../hooks/useInfiniteProperties';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
-
-type Unit = {
-  id: string;
-  unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
-  rentAmount: number;
-  rentCategory: 'Market Value' | 'Under Market Value';
-  vacancyStatus: 'Occupied' | 'Vacant';
-  projectedRent?: number;
-};
-
-type Property = {
-  id: string;
-  property_title: string;
-  address: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  purchase_price: number;
-  number_of_units: number;
-  property_description: string;
-  income_type: 'Estimated' | 'Actual' | 'Mixed';
-  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
-  units: Unit[];
-  property_taxes: number;
-  insurance: number;
-  hydro: number;
-  gas: number;
-  water: number;
-  waste_management: number;
-  maintenance: number;
-  management_fees: number;
-  miscellaneous: number;
-  down_payment_type: 'Percent' | 'Fixed';
-  down_payment_amount: number;
-  amortization_period: number;
-  mortgage_rate: number;
-  images: string[];
-  agent_name: string;
-  agent_email: string;
-  agent_phone: string;
-  created_at: string;
-};
+import { Property, Unit } from '../types/property';
+import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
 
 const NewPropertyCard = () => {
   return (
@@ -269,10 +228,23 @@ const Dashboard: React.FC = () => {
           agent_name: item.agent_name || '',
           agent_email: item.agent_email || '',
           agent_phone: item.agent_phone || '',
-          created_at: item.created_at
+          created_at: item.created_at,
+          latitude: item.latitude,
+          longitude: item.longitude
         }));
 
+        console.log('Fetched properties with coordinates:', transformedProperties.map(p => ({
+          title: p.property_title,
+          lat: p.latitude,
+          lng: p.longitude
+        })));
+
         setAllProperties(transformedProperties);
+        
+        // Geocode properties in background if they're missing coordinates
+        geocodePropertiesInBackground(transformedProperties).catch(err => {
+          console.error('Background geocoding failed:', err);
+        });
       } else {
         setAllProperties([]);
       }
@@ -284,8 +256,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Create dynamic mortgage parameters from current filters
-  // If no filters are applied, use null to let individual properties use their own parameters
   const hasFilters = filters.mortgageRate !== undefined || 
                      filters.amortizationPeriod !== undefined || 
                      filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined ||

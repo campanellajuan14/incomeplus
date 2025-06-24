@@ -26,6 +26,8 @@ export type Database = {
           images: Json | null
           income_type: string
           insurance: number | null
+          latitude: number | null
+          longitude: number | null
           maintenance: number | null
           management_fees: number | null
           miscellaneous: number | null
@@ -60,6 +62,8 @@ export type Database = {
           images?: Json | null
           income_type: string
           insurance?: number | null
+          latitude?: number | null
+          longitude?: number | null
           maintenance?: number | null
           management_fees?: number | null
           miscellaneous?: number | null
@@ -94,6 +98,8 @@ export type Database = {
           images?: Json | null
           income_type?: string
           insurance?: number | null
+          latitude?: number | null
+          longitude?: number | null
           maintenance?: number | null
           management_fees?: number | null
           miscellaneous?: number | null

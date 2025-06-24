@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Check, ArrowUp, Plus, Trash2, X, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import { useGeocoding } from '../hooks/useGeocoding';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 // Canadian provinces
@@ -57,6 +58,7 @@ type Property = {
 const PropertyUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { geocodeProperty, isGeocoding, geocodingError } = useGeocoding();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -103,7 +105,6 @@ const PropertyUpload: React.FC = () => {
   // Image upload state
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
-  const [isUploading, setIsUploading] = useState(false);
   
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -183,7 +184,6 @@ const PropertyUpload: React.FC = () => {
       throw new Error('At least one property image is required');
     }
     
-    setIsUploading(true);
     const uploadedUrls: string[] = [];
     
     try {
@@ -236,8 +236,6 @@ const PropertyUpload: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`Failed to upload images: ${errorMessage}`);
       throw err;
-    } finally {
-      setIsUploading(false);
     }
   };
   
@@ -306,7 +304,29 @@ const PropertyUpload: React.FC = () => {
         throw new Error(`Database error: ${supabaseError.message}`);
       }
       
-      console.log('Property inserted successfully:', data);
+      if (!data || data.length === 0) {
+        throw new Error('Failed to create property record');
+      }
+      
+      const insertedProperty = data[0];
+      console.log('Property inserted successfully:', insertedProperty);
+      
+      // 4. Geocode the property address in the background
+      console.log('Starting geocoding process...');
+      const geocodeResult = await geocodeProperty(
+        insertedProperty.id,
+        property.address,
+        property.city,
+        property.province,
+        property.postal_code
+      );
+      
+      if (geocodeResult.success) {
+        console.log('Property geocoded successfully');
+      } else {
+        console.warn('Geocoding failed, but property was saved:', geocodeResult.error);
+        // Don't fail the entire operation if geocoding fails
+      }
       
       setSuccess('Property added successfully!');
       
@@ -324,11 +344,15 @@ const PropertyUpload: React.FC = () => {
     }
   };
   
+  // Show combined loading state for both property creation and geocoding
+  const isProcessing = isLoading || isGeocoding;
+  const loadingMessage = isGeocoding ? "Geocoding address..." : isLoading ? "Saving property..." : "Processing...";
+  
   return (
     <div className="pt-16 md:pt-20 pb-16">
       <LoadingSpinner 
-        isVisible={isLoading || isUploading}
-        message={isUploading ? "Uploading images..." : "Saving property..."}
+        isVisible={isProcessing}
+        message={loadingMessage}
         variant="overlay"
       />
       
@@ -340,10 +364,10 @@ const PropertyUpload: React.FC = () => {
           </p>
         </div>
         
-        {error && (
+        {(error || geocodingError) && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">
             <AlertCircle className="h-5 w-5 text-red-400 mr-2 mt-0.5" />
-            <span>{error}</span>
+            <span>{error || geocodingError}</span>
           </div>
         )}
         
@@ -808,8 +832,8 @@ const PropertyUpload: React.FC = () => {
                     name="down_payment_amount"
                     value={property.down_payment_amount || ''}
                     onChange={handleChange}
-                    max={property.down_payment_type === 'Percent' ? "100" : undefined}
-                    step={property.down_payment_type === 'Percent' ? "0.1" : "1000"}
+                    max={property.down_payment_type === 'Percent' ? 100 : undefined}
+                    step={property.down_payment_type === 'Percent' ? 0.1 : 1000}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -825,7 +849,7 @@ const PropertyUpload: React.FC = () => {
                     name="amortization_period"
                     value={property.amortization_period || ''}
                     onChange={handleChange}
-                    max="40"
+                    max={40}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -841,7 +865,7 @@ const PropertyUpload: React.FC = () => {
                     name="mortgage_rate"
                     value={property.mortgage_rate || ''}
                     onChange={handleChange}
-                    max="20"
+                    max={20}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   />
@@ -990,12 +1014,12 @@ const PropertyUpload: React.FC = () => {
               </button>
               <button
                 type="submit"
-                disabled={isLoading || isUploading}
+                disabled={isProcessing}
                 className={`px-6 py-2 rounded text-white flex items-center ${
-                  isLoading || isUploading ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                  isProcessing ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
                 }`}
               >
-                {isLoading || isUploading ? 'Processing...' : (
+                {isProcessing ? loadingMessage : (
                   <>
                     <ArrowUp className="h-4 w-4 mr-2" />
                     Add Property

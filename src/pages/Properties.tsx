@@ -11,6 +11,7 @@ import { usePropertySearch } from '../hooks/usePropertySearch';
 import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { Property, Unit } from '../types/property';
+import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
 
 const Properties: React.FC = () => {
   const { user } = useAuth();
@@ -171,10 +172,17 @@ const Properties: React.FC = () => {
           agent_name: item.agent_name || '',
           agent_email: item.agent_email || '',
           agent_phone: item.agent_phone || '',
-          created_at: item.created_at
+          created_at: item.created_at,
+          latitude: item.latitude,
+          longitude: item.longitude
         }));
 
         setAllProperties(transformedProperties);
+        
+        // Geocode properties in background if they're missing coordinates
+        geocodePropertiesInBackground(transformedProperties).catch(err => {
+          console.error('Background geocoding failed:', err);
+        });
       } else {
         setAllProperties([]);
       }
