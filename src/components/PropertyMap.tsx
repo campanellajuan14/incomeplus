@@ -11,7 +11,7 @@ interface PropertyMapProps {
   center?: { lat: number; lng: number };
   zoom?: number;
   enableClustering?: boolean;
-  autoFit?: boolean;
+  autoFit?: boolean; // Default: true - automatically fits map to show all search results
 }
 
 const PropertyMap: React.FC<PropertyMapProps> = memo(({
@@ -26,6 +26,8 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
 }) => {
   // Auto-enable clustering for dense areas (10+ properties)
   const shouldCluster = enableClustering || properties.length >= 10;
+  // Auto-fit map to show all search results by default
+  const shouldAutoFit = autoFit !== false; // Default to true unless explicitly set to false
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -282,26 +284,58 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
       }
     }
 
-    // Auto-fit map to show all markers
-    if (autoFit && hasValidMarkers && markersRef.current.length > 1) {
-      mapInstanceRef.current.fitBounds(bounds);
-      
-      // Set a maximum zoom level to prevent zooming too close
-      const maxZoom = markersRef.current.length === 1 ? 15 : 13;
-      const listener = window.google.maps.event.addListener(mapInstanceRef.current, 'idle', () => {
-        if (mapInstanceRef.current.getZoom() > maxZoom) {
-          mapInstanceRef.current.setZoom(maxZoom);
-        }
-        window.google.maps.event.removeListener(listener);
-      });
-    } else if (hasValidMarkers && markersRef.current.length === 1) {
-      // Center on single marker
-      const singleProperty = propertiesWithCoords[0];
-      mapInstanceRef.current.setCenter({
-        lat: Number(singleProperty.latitude),
-        lng: Number(singleProperty.longitude)
-      });
-      mapInstanceRef.current.setZoom(15);
+    // Auto-fit map to show all search results
+    if (shouldAutoFit && hasValidMarkers) {
+      if (markersRef.current.length === 1) {
+        // Center on single property with appropriate zoom
+        const singleProperty = propertiesWithCoords[0];
+        mapInstanceRef.current.setCenter({
+          lat: Number(singleProperty.latitude),
+          lng: Number(singleProperty.longitude)
+        });
+        mapInstanceRef.current.setZoom(15);
+      } else if (markersRef.current.length > 1) {
+        // Fit bounds to show all properties with padding
+        const boundsWithPadding = new window.google.maps.LatLngBounds();
+        
+        // Add all property positions to bounds
+        propertiesWithCoords.forEach(property => {
+          boundsWithPadding.extend(new window.google.maps.LatLng(
+            Number(property.latitude),
+            Number(property.longitude)
+          ));
+        });
+        
+        // Apply bounds with padding for better visual spacing
+        mapInstanceRef.current.fitBounds(boundsWithPadding, {
+          top: 50,
+          right: 50,
+          bottom: 50,
+          left: 50
+        });
+        
+        // Set intelligent zoom limits based on number of properties
+        const maxZoom = markersRef.current.length >= 20 ? 12 : 
+                       markersRef.current.length >= 10 ? 13 : 
+                       markersRef.current.length >= 5 ? 14 : 15;
+        
+        const minZoom = 8; // Prevent zooming out too far
+        
+        // Apply zoom limits after bounds are set
+        const listener = window.google.maps.event.addListener(mapInstanceRef.current, 'idle', () => {
+          const currentZoom = mapInstanceRef.current.getZoom();
+          if (currentZoom > maxZoom) {
+            mapInstanceRef.current.setZoom(maxZoom);
+          } else if (currentZoom < minZoom) {
+            mapInstanceRef.current.setZoom(minZoom);
+          }
+          window.google.maps.event.removeListener(listener);
+        });
+      }
+    } else if (!shouldAutoFit && markersRef.current.length === 0) {
+      // Reset to default center and zoom when no properties and auto-fit is disabled
+      mapInstanceRef.current.setCenter(center);
+      mapInstanceRef.current.setZoom(zoom);
     }
 
     // Listen for property selection events from info windows
@@ -318,7 +352,7 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
     return () => {
       window.removeEventListener('propertySelect', handlePropertySelect);
     };
-  }, [isMapReady, properties, selectedPropertyId, onPropertySelect, shouldCluster, autoFit]);
+  }, [isMapReady, properties, selectedPropertyId, onPropertySelect, shouldCluster, shouldAutoFit, center, zoom]);
 
   if (error) {
     return (
