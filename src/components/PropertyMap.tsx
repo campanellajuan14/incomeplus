@@ -121,39 +121,47 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
         title: property.property_title
       });
 
-      // Create enhanced info window
+      // Create clean minimal info window
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
-          <div class="p-4 max-w-sm">
+          <div style="
+            width: 160px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            font-family: -apple-system, sans-serif;
+          ">
             ${property.images.length > 0 ? `
-              <img src="${property.images[0]}" alt="${property.property_title}" class="w-full h-32 object-cover rounded-lg mb-3">
+              <img 
+                src="${property.images[0]}" 
+                style="
+                  width: 100%;
+                  height: 80px;
+                  object-fit: cover;
+                  display: block;
+                "
+              >
             ` : ''}
-            <h3 class="font-semibold text-lg mb-2 text-gray-800">${property.property_title}</h3>
-            <p class="text-sm text-gray-600 mb-2">
-              <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-              </svg>
-              ${property.address}
-            </p>
-            <p class="text-sm text-gray-600 mb-3">${property.city}, ${property.province}</p>
-            <div class="text-xs text-gray-500 mb-2">
-              Coordinates: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}
+            <div style="padding: 12px;">
+              <div style="
+                font-size: 15px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 6px;
+                letter-spacing: -0.02em;
+              ">
+                $${property.purchase_price.toLocaleString()}
+              </div>
+              <div style="
+                font-size: 10px;
+                color: #888;
+                line-height: 1.4;
+                font-weight: 400;
+              ">
+                ${property.address}
+              </div>
             </div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-sm text-gray-600">
-                <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                </svg>
-                ${property.number_of_units} units
-              </span>
-              <span class="font-bold text-lg text-blue-600">$${property.purchase_price.toLocaleString()}</span>
-            </div>
-            <button 
-              onclick="window.dispatchEvent(new CustomEvent('propertySelect', {detail: '${property.id}'}))"
-              class="w-full mt-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-            >
-              View Details
-            </button>
           </div>
         `
       });
