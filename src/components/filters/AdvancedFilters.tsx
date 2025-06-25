@@ -28,7 +28,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const incomeTypeOptions = [
     { value: 'All', label: 'All Income Types' },
     { value: 'Actual', label: 'Actual Income' },
-    { value: 'Estimated', label: 'Estimated Income' },
+    { value: 'Estimated', label: 'Projected Income' },
     { value: 'Mixed', label: 'Mixed Income' }
   ];
 

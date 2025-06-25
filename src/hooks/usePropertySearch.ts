@@ -42,6 +42,7 @@ type Property = {
   agent_email: string;
   agent_phone: string;
   created_at: string;
+  year_built?: number;
 };
 
 export const usePropertySearch = (properties: Property[], initialFilters?: PropertyFilters) => {
@@ -51,7 +52,7 @@ export const usePropertySearch = (properties: Property[], initialFilters?: Prope
   const filteredProperties = useMemo(() => {
     if (!properties.length) return [];
 
-    return properties.filter(property => {
+    let filtered = properties.filter(property => {
       // Check if mortgage filters are applied
       const hasMortgageFilters = filters.mortgageRate !== undefined || 
                                 filters.amortizationPeriod !== undefined || 
@@ -85,9 +86,21 @@ export const usePropertySearch = (properties: Property[], initialFilters?: Prope
       if (filters.unitsMin && property.number_of_units < filters.unitsMin) return false;
       if (filters.unitsMax && property.number_of_units > filters.unitsMax) return false;
 
+      // Year Built range (new filter)
+      if (filters.yearBuiltMin && property.year_built && property.year_built < filters.yearBuiltMin) return false;
+      if (filters.yearBuiltMax && property.year_built && property.year_built > filters.yearBuiltMax) return false;
+
       // Location filters
       if (filters.city && !property.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
       if (filters.province && !property.province.toLowerCase().includes(filters.province.toLowerCase())) return false;
+
+      // City radius search (enhanced location filtering)
+      // Note: This is a simplified implementation. For production, you'd want to use proper geocoding and distance calculations
+      if (filters.city && filters.cityRadius && filters.cityRadius !== 25) {
+        // For now, we'll just use the basic city matching
+        // In a full implementation, you'd calculate distance using lat/lng coordinates
+        if (!property.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
+      }
 
       // Financial filters
       if (filters.cashFlowMin && metrics.monthlyCashFlow < filters.cashFlowMin) return false;
@@ -115,6 +128,64 @@ export const usePropertySearch = (properties: Property[], initialFilters?: Prope
 
       return true;
     });
+
+    // Apply sorting
+    if (filters.sortBy && filtered.length > 0) {
+      filtered = filtered.sort((a, b) => {
+        // Calculate metrics for both properties for sorting
+        const getMetrics = (prop: typeof a) => {
+          const hasMortgageFilters = filters.mortgageRate !== undefined || 
+                                    filters.amortizationPeriod !== undefined || 
+                                    (filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined) ||
+                                    filters.downPaymentValue !== undefined;
+
+          const mortgageParams: MortgageParams = hasMortgageFilters ? {
+            mortgageRate: filters.mortgageRate || 5.5,
+            amortizationPeriod: filters.amortizationPeriod || 25,
+            downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
+            downPaymentValue: filters.downPaymentValue || 20,
+            purchasePrice: prop.purchase_price
+          } : {
+            mortgageRate: prop.mortgage_rate || 4.0,
+            amortizationPeriod: prop.amortization_period || 25,
+            downPaymentType: prop.down_payment_type || 'Percent',
+            downPaymentValue: prop.down_payment_amount || 20,
+            purchasePrice: prop.purchase_price
+          };
+
+          return calculatePropertyMetrics(prop, mortgageParams);
+        };
+
+        const metricsA = getMetrics(a);
+        const metricsB = getMetrics(b);
+
+        let compareValue = 0;
+
+        switch (filters.sortBy) {
+          case 'cashFlow':
+            compareValue = metricsA.monthlyCashFlow - metricsB.monthlyCashFlow;
+            break;
+          case 'capRate':
+            compareValue = metricsA.capRate - metricsB.capRate;
+            break;
+          case 'roi':
+            compareValue = metricsA.roi - metricsB.roi;
+            break;
+          case 'yearlyRoi':
+            compareValue = metricsA.fullYearlyROI - metricsB.fullYearlyROI;
+            break;
+          case 'price':
+            compareValue = a.purchase_price - b.purchase_price;
+            break;
+          default:
+            return 0;
+        }
+
+        return filters.sortOrder === 'desc' ? -compareValue : compareValue;
+      });
+    }
+
+    return filtered;
   }, [properties, filters]);
 
   const propertiesWithMetrics = useMemo(() => {

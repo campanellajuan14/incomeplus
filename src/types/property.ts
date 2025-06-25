@@ -41,4 +41,5 @@ export type Property = {
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
+  year_built?: number; // New field for year built
 };

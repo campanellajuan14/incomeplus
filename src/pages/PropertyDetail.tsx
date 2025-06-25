@@ -490,6 +490,18 @@ const PropertyDetail: React.FC = () => {
                     {metrics.debtServiceRatio.toFixed(2)}x
                   </span>
                 </div>
+                <div className="flex justify-between items-center p-3 bg-indigo-50 rounded">
+                  <span className="text-gray-700">Yearly Principal Paydown</span>
+                  <span className="font-bold text-lg text-indigo-600">
+                    ${Math.round(metrics.yearlyPrincipalPaydown).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-emerald-50 rounded">
+                  <span className="text-gray-700">Full Yearly ROI</span>
+                  <span className="font-bold text-lg text-emerald-600">
+                    {metrics.fullYearlyROI.toFixed(1)}%
+                  </span>
+                </div>
               </div>
             </div>
 

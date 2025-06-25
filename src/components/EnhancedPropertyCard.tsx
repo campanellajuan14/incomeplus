@@ -209,6 +209,18 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
           </div>
         </div>
 
+        {/* New Key Metrics Row */}
+        <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+          <div className="text-indigo-600">
+            <div className="font-medium">${Math.round(metrics?.yearlyPrincipalPaydown || 0).toLocaleString()}/yr</div>
+            <div className="text-xs text-gray-500">Principal Paydown</div>
+          </div>
+          <div className="text-emerald-600">
+            <div className="font-medium">{(metrics?.fullYearlyROI || 0).toFixed(1)}%</div>
+            <div className="text-xs text-gray-500">Full Yearly ROI</div>
+          </div>
+        </div>
+
         <div className="border-t pt-2 text-sm">
           <div className="flex justify-between mb-1">
             <span className="text-gray-600">Monthly Rent:</span>

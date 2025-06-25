@@ -16,6 +16,10 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
     const newFilters = { ...filters };
     if (key === 'downPaymentType' || key === 'incomeType' || key === 'tenancyType' || key === 'rentCategory' || key === 'vacancyStatus') {
       newFilters[key] = 'All';
+    } else if (key === 'sortBy') {
+      newFilters[key] = 'cashFlow'; // Default sort
+    } else if (key === 'sortOrder') {
+      newFilters[key] = 'desc'; // Default order
     } else {
       delete newFilters[key];
     }
@@ -66,6 +70,16 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         return `Rent: ${value}`;
       case 'vacancyStatus':
         return `Vacancy: ${value}`;
+      case 'yearBuiltMin':
+        return `Min Year Built: ${value}`;
+      case 'yearBuiltMax':
+        return `Max Year Built: ${value}`;
+      case 'cityRadius':
+        return `Radius: ${value}km`;
+      case 'sortBy':
+        return `Sort by: ${value}`;
+      case 'sortOrder':
+        return `Order: ${value === 'asc' ? 'Low → High' : 'High → Low'}`;
       default:
         return `${key}: ${value}`;
     }

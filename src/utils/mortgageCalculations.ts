@@ -18,6 +18,8 @@ export interface CalculatedMetrics {
   loanAmount: number;
   annualCashFlow: number;
   netOperatingIncome: number;
+  yearlyPrincipalPaydown: number;
+  fullYearlyROI: number;
 }
 
 export const calculateMortgagePayment = (
@@ -145,6 +147,20 @@ export const calculatePropertyMetrics = (
   const debtServiceRatio = annualDebtService > 0 ? 
     (netOperatingIncome / annualDebtService) : 0;
 
+  // Calculate yearly principal paydown
+  const yearlyPrincipalPaydown = calculateYearlyPrincipalPaydown(
+    loanAmount,
+    mortgageParams.mortgageRate,
+    mortgageParams.amortizationPeriod
+  );
+
+  // Calculate full yearly ROI (cash flow + principal paydown) / total investment
+  const fullYearlyROI = calculateFullYearlyROI(
+    annualCashFlow,
+    yearlyPrincipalPaydown,
+    downPaymentAmount
+  );
+
   return {
     monthlyPayment,
     totalRent,
@@ -156,6 +172,52 @@ export const calculatePropertyMetrics = (
     downPaymentAmount,
     loanAmount,
     annualCashFlow,
-    netOperatingIncome
+    netOperatingIncome,
+    yearlyPrincipalPaydown,
+    fullYearlyROI
   };
+};
+
+export const calculateYearlyPrincipalPaydown = (
+  loanAmount: number,
+  annualRate: number,
+  years: number,
+  year: number = 1
+): number => {
+  if (annualRate === 0) return loanAmount / years;
+  
+  const monthlyRate = annualRate / 100 / 12;
+  const numPayments = years * 12;
+  const monthlyPayment = calculateMortgagePayment(loanAmount, annualRate, years);
+  
+  let balance = loanAmount;
+  let totalPrincipal = 0;
+  
+  const startMonth = (year - 1) * 12 + 1;
+  const endMonth = year * 12;
+  
+  for (let month = 1; month <= endMonth; month++) {
+    const interestPayment = balance * monthlyRate;
+    const principalPayment = monthlyPayment - interestPayment;
+    
+    if (month >= startMonth) {
+      totalPrincipal += principalPayment;
+    }
+    
+    balance -= principalPayment;
+  }
+  
+  return totalPrincipal;
+};
+
+export const calculateFullYearlyROI = (
+  annualCashFlow: number,
+  yearlyPrincipalPaydown: number,
+  totalInvestment: number,
+  appreciation: number = 0
+): number => {
+  if (totalInvestment <= 0) return 0;
+  
+  const totalReturn = annualCashFlow + yearlyPrincipalPaydown + appreciation;
+  return (totalReturn / totalInvestment) * 100;
 };

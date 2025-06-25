@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Search, Filter, Settings2, X } from 'lucide-react';
 import { PropertyFilters, defaultFilters } from '../types/filters';
 import QuickFilters from './filters/QuickFilters';
 import AdvancedFilters from './filters/AdvancedFilters';
 import ActiveFilters from './filters/ActiveFilters';
+import SortingControls from './filters/SortingControls';
 
 interface PropertyFiltersProps {
   filters: PropertyFilters;
@@ -32,6 +32,11 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
     
     filterKeys.forEach(key => {
       const value = filters[key];
+      // Exclude default sorting and radius values from active filter count
+      if (key === 'sortBy' && value === 'cashFlow') return;
+      if (key === 'sortOrder' && value === 'desc') return;
+      if (key === 'cityRadius' && value === 25) return;
+      
       if (value !== undefined && value !== null && value !== '' && value !== 'All') {
         count++;
       }
@@ -96,6 +101,13 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
           filters={filters}
           onFiltersChange={onFiltersChange}
         />
+
+        <div className="mt-6">
+          <SortingControls
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+          />
+        </div>
 
         <div className="flex justify-center mt-6">
           <button

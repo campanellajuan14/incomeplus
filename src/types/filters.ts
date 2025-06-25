@@ -21,6 +21,15 @@ export interface PropertyFilters {
   unitsMax?: number;
   city?: string;
   province?: string;
+  
+  // New filters
+  yearBuiltMin?: number;
+  yearBuiltMax?: number;
+  cityRadius?: number; // in kilometers
+  
+  // Sorting options
+  sortBy?: 'cashFlow' | 'capRate' | 'price' | 'roi' | 'yearlyRoi';
+  sortOrder?: 'asc' | 'desc';
 
   // Income Filters
   incomeType?: 'Actual' | 'Estimated' | 'Mixed' | 'All';
@@ -34,5 +43,8 @@ export const defaultFilters: PropertyFilters = {
   incomeType: 'All',
   tenancyType: 'All',
   rentCategory: 'All',
-  vacancyStatus: 'All'
+  vacancyStatus: 'All',
+  cityRadius: 25, // Default 25km radius
+  sortBy: 'cashFlow',
+  sortOrder: 'desc'
 };
