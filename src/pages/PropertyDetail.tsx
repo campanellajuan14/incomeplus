@@ -331,7 +331,7 @@ const PropertyDetail: React.FC = () => {
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded">
                   <TrendingUp className="h-6 w-6 mx-auto mb-1 text-blue-500" />
-                  <div className="font-semibold">{property.income_type}</div>
+                  <div className="font-semibold">{property.income_type === 'Estimated' ? 'Projected Income' : property.income_type}</div>
                   <div className="text-sm text-gray-600">Income Type</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded">

@@ -513,7 +513,7 @@ const PropertyUpload: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                     required
                   >
-                    <option value="Estimated">Estimated</option>
+                    <option value="Estimated">Projected Income</option>
                     <option value="Actual">Actual</option>
                     <option value="Mixed">Mixed</option>
                   </select>

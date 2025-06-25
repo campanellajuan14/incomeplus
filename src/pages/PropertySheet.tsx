@@ -252,7 +252,7 @@ const PropertySheet: React.FC = () => {
     // Create CSV template
     const headers = ['property_title', 'address', 'city', 'province', 'postal_code', 'purchase_price', 'number_of_units', 'income_type', 'tenancy_type'];
     const template = headers.join(',') + '\n' + 
-      'Sample Property,123 Main St,Toronto,Ontario,M5V3A8,500000,2,Estimated,On Leases';
+      'Sample Property,123 Main St,Toronto,Ontario,M5V3A8,500000,2,Projected Income,On Leases';
     
     // Create download link
     const blob = new Blob([template], { type: 'text/csv' });
