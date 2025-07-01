@@ -24,30 +24,14 @@ const QuickFilters: React.FC<QuickFiltersProps> = ({
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
-            City & Radius Search
+            City Search
           </label>
-          <div className="flex space-x-2">
-            <div className="flex-1">
-              <SearchInput
-                value={filters.city || ''}
-                onChange={(value) => updateFilter('city', value || undefined)}
-                placeholder="City or location..."
-                icon={<Search className="h-4 w-4" />}
-              />
-            </div>
-            <div className="w-24">
-              <input
-                type="number"
-                value={filters.cityRadius || ''}
-                onChange={(e) => updateFilter('cityRadius', Number(e.target.value) || undefined)}
-                placeholder="25"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-              />
-            </div>
-            <div className="flex items-center text-xs text-gray-500 px-2">
-              km
-            </div>
-          </div>
+          <SearchInput
+            value={filters.city || ''}
+            onChange={(value) => updateFilter('city', value || undefined)}
+            placeholder="City or location..."
+            icon={<Search className="h-4 w-4" />}
+          />
         </div>
       </div>
 

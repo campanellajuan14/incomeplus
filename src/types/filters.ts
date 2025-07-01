@@ -22,9 +22,6 @@ export interface PropertyFilters {
   city?: string;
   province?: string;
   
-  // New filters
-  cityRadius?: number; // in kilometers
-  
   // Sorting options
   sortBy?: 'cashFlow' | 'capRate' | 'price' | 'roi' | 'yearlyRoi';
   sortOrder?: 'asc' | 'desc';
@@ -42,7 +39,6 @@ export const defaultFilters: PropertyFilters = {
   tenancyType: 'All',
   rentCategory: 'All',
   vacancyStatus: 'All',
-  cityRadius: 25, // Default 25km radius
   sortBy: 'cashFlow',
   sortOrder: 'desc'
 };

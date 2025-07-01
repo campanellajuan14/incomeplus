@@ -89,14 +89,6 @@ export const usePropertySearch = (properties: Property[], initialFilters?: Prope
       if (filters.city && !property.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
       if (filters.province && !property.province.toLowerCase().includes(filters.province.toLowerCase())) return false;
 
-      // City radius search (enhanced location filtering)
-      // Note: This is a simplified implementation. For production, you'd want to use proper geocoding and distance calculations
-      if (filters.city && filters.cityRadius && filters.cityRadius !== 25) {
-        // For now, we'll just use the basic city matching
-        // In a full implementation, you'd calculate distance using lat/lng coordinates
-        if (!property.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
-      }
-
       // Financial filters
       if (filters.cashFlowMin && metrics.monthlyCashFlow < filters.cashFlowMin) return false;
       if (filters.cashFlowMax && metrics.monthlyCashFlow > filters.cashFlowMax) return false;

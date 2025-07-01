@@ -32,10 +32,9 @@ const PropertyFiltersComponent: React.FC<PropertyFiltersProps> = ({
     
     filterKeys.forEach(key => {
       const value = filters[key];
-      // Exclude default sorting and radius values from active filter count
+      // Exclude default sorting values from active filter count
       if (key === 'sortBy' && value === 'cashFlow') return;
       if (key === 'sortOrder' && value === 'desc') return;
-      if (key === 'cityRadius' && value === 25) return;
       
       if (value !== undefined && value !== null && value !== '' && value !== 'All') {
         count++;

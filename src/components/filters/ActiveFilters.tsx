@@ -69,8 +69,6 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         return `Rent: ${value}`;
       case 'vacancyStatus':
         return `Vacancy: ${value}`;
-      case 'cityRadius':
-        return `Radius: ${value}km`;
       case 'sortBy':
         return `Sort by: ${value}`;
       case 'sortOrder':
