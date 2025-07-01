@@ -1,4 +1,3 @@
-
 export type Unit = {
   id: string;
   unitType: 'Bachelor' | '1 Bedroom' | '2 Bedroom' | '3 Bedroom+' | 'Other';
@@ -41,5 +40,4 @@ export type Property = {
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
-  year_built?: number; // New field for year built
 };

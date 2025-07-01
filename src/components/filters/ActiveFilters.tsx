@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X } from 'lucide-react';
 import { PropertyFilters } from '../../types/filters';
@@ -70,10 +69,6 @@ const ActiveFilters: React.FC<ActiveFiltersProps> = ({
         return `Rent: ${value}`;
       case 'vacancyStatus':
         return `Vacancy: ${value}`;
-      case 'yearBuiltMin':
-        return `Min Year Built: ${value}`;
-      case 'yearBuiltMax':
-        return `Max Year Built: ${value}`;
       case 'cityRadius':
         return `Radius: ${value}km`;
       case 'sortBy':

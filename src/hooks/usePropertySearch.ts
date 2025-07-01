@@ -42,7 +42,6 @@ type Property = {
   agent_email: string;
   agent_phone: string;
   created_at: string;
-  year_built?: number;
 };
 
 export const usePropertySearch = (properties: Property[], initialFilters?: PropertyFilters) => {
@@ -85,10 +84,6 @@ export const usePropertySearch = (properties: Property[], initialFilters?: Prope
       // Units range
       if (filters.unitsMin && property.number_of_units < filters.unitsMin) return false;
       if (filters.unitsMax && property.number_of_units > filters.unitsMax) return false;
-
-      // Year Built range (new filter)
-      if (filters.yearBuiltMin && property.year_built && property.year_built < filters.yearBuiltMin) return false;
-      if (filters.yearBuiltMax && property.year_built && property.year_built > filters.yearBuiltMax) return false;
 
       // Location filters
       if (filters.city && !property.city.toLowerCase().includes(filters.city.toLowerCase())) return false;

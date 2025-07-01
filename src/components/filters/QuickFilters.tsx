@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, DollarSign, Users, Calendar, MapPin } from 'lucide-react';
+import { Search, DollarSign, Users, MapPin } from 'lucide-react';
 import { PropertyFilters } from '../../types/filters';
 import SearchInput from './SearchInput';
 import RangeInput from './RangeInput';
@@ -19,9 +19,9 @@ const QuickFilters: React.FC<QuickFiltersProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* First row - Location and Basic Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+      {/* First row - Location Search */}
+      <div className="grid grid-cols-1">
+        <div>
           <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide flex items-center">
             <MapPin className="h-3 w-3 mr-1" />
             City & Radius Search
@@ -48,21 +48,6 @@ const QuickFilters: React.FC<QuickFiltersProps> = ({
               km
             </div>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide flex items-center">
-            <Calendar className="h-3 w-3 mr-1" />
-            Year Built
-          </label>
-          <RangeInput
-            minValue={filters.yearBuiltMin}
-            maxValue={filters.yearBuiltMax}
-            onMinChange={(value) => updateFilter('yearBuiltMin', value)}
-            onMaxChange={(value) => updateFilter('yearBuiltMax', value)}
-            minPlaceholder="Min year"
-            maxPlaceholder="Max year"
-          />
         </div>
       </div>
 

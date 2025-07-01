@@ -23,8 +23,6 @@ export interface PropertyFilters {
   province?: string;
   
   // New filters
-  yearBuiltMin?: number;
-  yearBuiltMax?: number;
   cityRadius?: number; // in kilometers
   
   // Sorting options
