@@ -7,13 +7,15 @@ import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
 import PropertyMap from '../components/PropertyMap';
 import LoadingSpinner from '../components/LoadingSpinner';
+import InfiniteLoadingSpinner from '../components/InfiniteLoadingSpinner';
 import { usePropertySearch } from '../hooks/usePropertySearch';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { Property, Unit } from '../types/property';
 import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
 
-
+const PROPERTIES_PER_PAGE = 12;
 
 const Properties: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +23,9 @@ const Properties: React.FC = () => {
   const location = useLocation();
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | undefined>();
   const hasFetchedRef = useRef(false);
@@ -122,21 +127,53 @@ const Properties: React.FC = () => {
     setIsFiltersExpanded
   } = usePropertySearch(allProperties, urlFilters);
 
+  const loadMoreProperties = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchProperties(false);
+    }
+  };
+
+  // Intersection observer for infinite scroll
+  const { targetRef } = useIntersectionObserver({
+    onIntersect: loadMoreProperties,
+    enabled: hasMore && !isLoadingMore && viewMode === 'grid',
+    rootMargin: '200px'
+  });
+
   useEffect(() => {
     if (user && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      fetchProperties();
+      fetchProperties(true); // Reset to first page
     }
   }, [user]);
 
-  const fetchProperties = async () => {
+  // Reset pagination when filters change
+  useEffect(() => {
+    if (hasFetchedRef.current) {
+      setCurrentPage(0);
+      setHasMore(true);
+      fetchProperties(true);
+    }
+  }, [filters]);
+
+  const fetchProperties = async (resetPagination = false) => {
     try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase
+      if (resetPagination) {
+        setIsLoading(true);
+        setCurrentPage(0);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const pageToFetch = resetPagination ? 0 : currentPage + 1;
+      const from = pageToFetch * PROPERTIES_PER_PAGE;
+      const to = from + PROPERTIES_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
         .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error('Supabase error:', error);
@@ -179,20 +216,36 @@ const Properties: React.FC = () => {
           longitude: item.longitude
         }));
 
-        setAllProperties(transformedProperties);
+        if (resetPagination) {
+          setAllProperties(transformedProperties);
+        } else {
+          setAllProperties(prev => [...prev, ...transformedProperties]);
+        }
+
+        // Update pagination state
+        setCurrentPage(pageToFetch);
+        const totalFetched = resetPagination ? transformedProperties.length : allProperties.length + transformedProperties.length;
+        setHasMore(count ? totalFetched < count : transformedProperties.length === PROPERTIES_PER_PAGE);
         
         // Geocode properties in background if they're missing coordinates
         geocodePropertiesInBackground(transformedProperties).catch(err => {
           console.error('Background geocoding failed:', err);
         });
       } else {
-        setAllProperties([]);
+        if (resetPagination) {
+          setAllProperties([]);
+        }
+        setHasMore(false);
       }
     } catch (err: unknown) {
       console.error('Error fetching properties:', err);
-      setAllProperties([]);
+      if (resetPagination) {
+        setAllProperties([]);
+      }
+      setHasMore(false);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -232,6 +285,9 @@ const Properties: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
                 <p className="mt-1 text-sm text-gray-500">
                   {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
+                  {viewMode === 'grid' && hasMore && (
+                    <span className="text-gray-400"> • More available</span>
+                  )}
                 </p>
               </div>
               
@@ -290,15 +346,27 @@ const Properties: React.FC = () => {
         ) : (
           <div className="mt-8">
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProperties.map((property) => (
-                  <EnhancedPropertyCard
-                    key={property.id}
-                    property={property}
-                    dynamicMortgageParams={filters as MortgageParams}
-                    currentFilters={filters}
-                  />
-                ))}
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProperties.map((property) => (
+                    <EnhancedPropertyCard
+                      key={property.id}
+                      property={property}
+                      dynamicMortgageParams={filters as MortgageParams}
+                      currentFilters={filters}
+                    />
+                  ))}
+                </div>
+                
+                {/* Infinite loading trigger and spinner */}
+                {hasMore && (
+                  <div ref={targetRef} className="mt-8">
+                    <InfiniteLoadingSpinner 
+                      isVisible={isLoadingMore}
+                      message="Loading more properties..."
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <PropertyMap
