@@ -91,15 +91,6 @@ const DashboardOverview: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Good afternoon!</h2>
-        <p className="text-blue-100">
-          Here's what's happening with your real estate portfolio today.
-        </p>
-      </div>
-
-      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Properties"

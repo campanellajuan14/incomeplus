@@ -25,44 +25,37 @@ const DASHBOARD_TABS: DashboardTabConfig[] = [
   {
     id: 'overview',
     label: 'Overview',
-    icon: 'Home',
-    description: 'Dashboard overview and key metrics'
+    icon: 'Home'
   },
   {
     id: 'properties',
     label: 'My Properties',
-    icon: 'Home',
-    description: 'Manage your property listings and investments'
+    icon: 'Home'
   },
   {
     id: 'saved',
     label: 'Saved Properties',
-    icon: 'Heart',
-    description: 'Properties you have saved and search alerts'
+    icon: 'Heart'
   },
   {
     id: 'analytics',
     label: 'Analytics',
-    icon: 'BarChart3',
-    description: 'Financial analytics and performance insights'
+    icon: 'BarChart3'
   },
   {
     id: 'messages',
     label: 'Messages',
-    icon: 'MessageSquare',
-    description: 'Communicate with agents and property managers'
+    icon: 'MessageSquare'
   },
   {
     id: 'activity',
     label: 'Activity',
-    icon: 'Activity',
-    description: 'Your activity history and platform interactions'
+    icon: 'Activity'
   },
   {
     id: 'settings',
     label: 'Settings',
-    icon: 'Settings',
-    description: 'Profile and notification settings'
+    icon: 'Settings'
   }
 ];
 
@@ -177,7 +170,7 @@ const Dashboard: React.FC = () => {
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
-                    title={tab.description}
+                    title={tab.label}
                   >
                     {getTabIcon(tab.icon)}
                     <span className="font-medium">{tab.label}</span>
@@ -217,9 +210,7 @@ const Dashboard: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-900">
                       {DASHBOARD_TABS.find(tab => tab.id === activeTab)?.label}
                     </h2>
-                    <p className="text-gray-600 mt-1">
-                      {DASHBOARD_TABS.find(tab => tab.id === activeTab)?.description}
-                    </p>
+
                   </div>
                 </div>
               </div>

@@ -202,7 +202,6 @@ export interface DashboardTabConfig {
   id: DashboardTab;
   label: string;
   icon: string;
-  description: string;
 }
 
 // Form Types
