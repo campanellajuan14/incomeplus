@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Grid3X3, Map, PlusCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Grid3X3, Map } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
@@ -13,22 +13,7 @@ import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { Property, Unit } from '../types/property';
 import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
 
-const NewPropertyCard = () => {
-  return (
-    <Link 
-      to="/properties/upload"
-      className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-full min-h-[250px] text-center hover:bg-gray-100 transition-colors cursor-pointer"
-    >
-      <div className="bg-gray-200 rounded-full p-4 mb-4">
-        <PlusCircle className="h-8 w-8 text-gray-500" />
-      </div>
-      <h3 className="font-medium text-lg text-gray-700">Add a New Rental Property</h3>
-      <p className="text-gray-500 text-sm mt-2 max-w-xs">
-        Click here to analyze a new rental property with comprehensive details.
-      </p>
-    </Link>
-  );
-};
+
 
 const Properties: React.FC = () => {
   const { user } = useAuth();
@@ -251,15 +236,6 @@ const Properties: React.FC = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                {/* Add Property Button */}
-                <Link
-                  to="/properties/upload"
-                  className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Property
-                </Link>
-                
                 {/* View Mode Toggle */}
                 <div className="flex bg-gray-100 rounded-lg p-1 self-center">
                   <button
@@ -304,24 +280,17 @@ const Properties: React.FC = () => {
           <div className="mt-8 text-center">
             <div className="bg-white rounded-lg p-12 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500">
                 {hasFilters 
                   ? "Try adjusting your filters to see more results."
-                  : "Get started by uploading your first property."}
+                  : "No properties available at the moment."}
               </p>
-              <button
-                onClick={() => navigate('/properties/upload')}
-                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Add Your First Property
-              </button>
             </div>
           </div>
         ) : (
           <div className="mt-8">
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <NewPropertyCard />
                 {filteredProperties.map((property) => (
                   <EnhancedPropertyCard
                     key={property.id}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Heart, 
@@ -67,6 +68,7 @@ const DASHBOARD_TABS: DashboardTabConfig[] = [
 
 const Dashboard: React.FC = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -148,7 +150,10 @@ const Dashboard: React.FC = () => {
                 <Search className="mr-2" size={16} />
                 Search Properties
               </button>
-              <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button 
+                onClick={() => navigate('/properties/upload')}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
                 <Plus className="mr-2" size={16} />
                 Add Property
               </button>
