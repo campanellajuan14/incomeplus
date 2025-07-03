@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Features from './pages/Features';
 import Pricing from './pages/Pricing';
 import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import PropertyUpload from './pages/PropertyUpload';
 import PropertyDetail from './pages/PropertyDetail';
@@ -50,7 +51,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (user) {
-    return <Navigate to="/properties" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
@@ -102,7 +103,9 @@ function AppRoutes() {
       <Route 
         path="/dashboard" 
         element={
-          <Navigate to="/properties" replace />
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
         } 
       />
       <Route 

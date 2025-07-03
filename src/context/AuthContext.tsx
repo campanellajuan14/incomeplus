@@ -101,8 +101,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       
-              // Force page reload and redirect directly to properties
-        window.location.href = '/properties';
+              // Force page reload and redirect directly to dashboard
+        window.location.href = '/dashboard';
     } catch (error: any) {
       console.error('Error signing in:', error.message);
       throw error;

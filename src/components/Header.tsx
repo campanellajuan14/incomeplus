@@ -71,20 +71,21 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
           {/* Show different navigation items based on authentication status */}
           {user ? (
-            // Show only Properties when logged in
+            // Show dashboard and properties when logged in
             [
+              { path: '/dashboard', label: 'Dashboard' },
               { path: '/properties', label: 'Properties' }
             ].map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`font-medium transition-colors duration-200 text-gray-700 relative group py-1 ${
-                  location.pathname === item.path || location.pathname === '/properties' ? 'text-primary-600 font-semibold' : ''
+                  location.pathname === item.path || (location.pathname === '/dashboard' && item.path === '/dashboard') ? 'text-primary-600 font-semibold' : ''
                 }`}
               >
                 {item.label}
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary-500 transition-all duration-300 rounded-full ${
-                  location.pathname === item.path || location.pathname === '/properties' ? 'w-full' : 'w-0 group-hover:w-full'
+                  location.pathname === item.path || (location.pathname === '/dashboard' && item.path === '/dashboard') ? 'w-full' : 'w-0 group-hover:w-full'
                 }`}></span>
               </Link>
             ))
@@ -140,10 +141,16 @@ const Header: React.FC = () => {
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                   <Link
+                    to="/dashboard"
+                    className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" /> Dashboard
+                  </Link>
+                  <Link
                     to="/properties"
                     className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
                   >
-                    <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" /> Properties
+                    <FileSpreadsheet className="h-4 w-4 mr-3 text-gray-500" /> Properties
                   </Link>
                   <div className="border-t border-gray-100 mt-1 pt-1">
                     <button
@@ -211,15 +218,16 @@ const Header: React.FC = () => {
         
           {/* Show different navigation items for mobile based on authentication status */}
           {user ? (
-            // Show only Properties when logged in (mobile)
+            // Show dashboard and properties when logged in (mobile)
             [
-              { path: '/properties', label: 'Properties', icon: LayoutDashboard }
+              { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+              { path: '/properties', label: 'Properties', icon: FileSpreadsheet }
             ].map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center px-4 py-3.5 rounded-lg transition-all duration-200 text-base ${
-                  location.pathname === item.path || location.pathname === '/properties'
+                  location.pathname === item.path
                     ? 'bg-primary-100 text-primary-600 font-medium' 
                     : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
                 }`}
