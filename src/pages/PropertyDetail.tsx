@@ -175,12 +175,12 @@ const PropertyDetail: React.FC = () => {
   };
 
   // Preserve search parameters when navigating back
-  const handleBackToDashboard = () => {
+  const handleBackToProperties = () => {
     const searchParams = new URLSearchParams(location.search);
-    const dashboardUrl = searchParams.toString() 
-      ? `/dashboard?${searchParams.toString()}` 
-      : '/dashboard';
-    navigate(dashboardUrl);
+    const propertiesUrl = searchParams.toString() 
+      ? `/properties?${searchParams.toString()}` 
+      : '/properties';
+    navigate(propertiesUrl);
   };
 
   if (isLoading) {
@@ -216,10 +216,10 @@ const PropertyDetail: React.FC = () => {
           </div>
           <div className="text-center">
             <button 
-              onClick={handleBackToDashboard}
+              onClick={handleBackToProperties}
               className="text-primary-600 hover:text-primary-800 cursor-pointer"
             >
-              Return to Dashboard
+              Return to Properties
             </button>
           </div>
         </div>
@@ -251,11 +251,11 @@ const PropertyDetail: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center mb-6">
           <button
-            onClick={handleBackToDashboard}
+            onClick={handleBackToProperties}
             className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
-            Back to Dashboard
+            Back to Properties
           </button>
         </div>
 

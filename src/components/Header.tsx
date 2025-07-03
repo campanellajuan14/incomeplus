@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet } from 'lucide-react';
@@ -72,21 +71,20 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
           {/* Show different navigation items based on authentication status */}
           {user ? (
-            // Show only Dashboard and Properties Sheet when logged in
+            // Show only Properties when logged in
             [
-              { path: '/dashboard', label: 'Dashboard' },
-              { path: '/properties', label: 'Properties Sheet' }
+              { path: '/properties', label: 'Properties' }
             ].map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`font-medium transition-colors duration-200 text-gray-700 relative group py-1 ${
-                  location.pathname === item.path ? 'text-primary-600 font-semibold' : ''
+                  location.pathname === item.path || location.pathname === '/properties' ? 'text-primary-600 font-semibold' : ''
                 }`}
               >
                 {item.label}
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary-500 transition-all duration-300 rounded-full ${
-                  location.pathname === item.path ? 'w-full' : 'w-0 group-hover:w-full'
+                  location.pathname === item.path || location.pathname === '/properties' ? 'w-full' : 'w-0 group-hover:w-full'
                 }`}></span>
               </Link>
             ))
@@ -142,16 +140,10 @@ const Header: React.FC = () => {
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                   <Link
-                    to="/dashboard"
-                    className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
-                  >
-                    <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" /> Dashboard
-                  </Link>
-                  <Link
                     to="/properties"
                     className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
                   >
-                    <FileSpreadsheet className="h-4 w-4 mr-3 text-gray-500" /> Properties Sheet
+                    <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" /> Properties
                   </Link>
                   <div className="border-t border-gray-100 mt-1 pt-1">
                     <button
@@ -219,16 +211,15 @@ const Header: React.FC = () => {
         
           {/* Show different navigation items for mobile based on authentication status */}
           {user ? (
-            // Show only Dashboard and Properties Sheet when logged in (mobile)
+            // Show only Properties when logged in (mobile)
             [
-              { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-              { path: '/properties', label: 'Properties Sheet', icon: FileSpreadsheet }
+              { path: '/properties', label: 'Properties', icon: LayoutDashboard }
             ].map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center px-4 py-3.5 rounded-lg transition-all duration-200 text-base ${
-                  location.pathname === item.path 
+                  location.pathname === item.path || location.pathname === '/properties'
                     ? 'bg-primary-100 text-primary-600 font-medium' 
                     : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
                 }`}

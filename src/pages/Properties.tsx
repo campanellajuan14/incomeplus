@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Grid3X3, Map } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Grid3X3, Map, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import PropertyFilters from '../components/PropertyFilters';
@@ -12,6 +12,23 @@ import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { Property, Unit } from '../types/property';
 import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
+
+const NewPropertyCard = () => {
+  return (
+    <Link 
+      to="/properties/upload"
+      className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-full min-h-[250px] text-center hover:bg-gray-100 transition-colors cursor-pointer"
+    >
+      <div className="bg-gray-200 rounded-full p-4 mb-4">
+        <PlusCircle className="h-8 w-8 text-gray-500" />
+      </div>
+      <h3 className="font-medium text-lg text-gray-700">Add a New Rental Property</h3>
+      <p className="text-gray-500 text-sm mt-2 max-w-xs">
+        Click here to analyze a new rental property with comprehensive details.
+      </p>
+    </Link>
+  );
+};
 
 const Properties: React.FC = () => {
   const { user } = useAuth();
@@ -32,7 +49,7 @@ const Properties: React.FC = () => {
       vacancyStatus: 'All'
     };
 
-    // Parse all filter parameters (same logic as Dashboard)
+    // Parse all filter parameters
     const mortgageRate = searchParams.get('mortgageRate');
     if (mortgageRate) filters.mortgageRate = parseFloat(mortgageRate);
 
@@ -199,143 +216,128 @@ const Properties: React.FC = () => {
                      filters.downPaymentType !== 'All' && filters.downPaymentType !== undefined ||
                      filters.downPaymentValue !== undefined;
 
-  const dynamicMortgageParams: MortgageParams | null = hasFilters ? {
-    mortgageRate: filters.mortgageRate || 5.5,
-    amortizationPeriod: filters.amortizationPeriod || 25,
-    downPaymentType: filters.downPaymentType === 'All' ? 'Percent' : (filters.downPaymentType || 'Percent'),
-    downPaymentValue: filters.downPaymentValue || 20,
-    purchasePrice: 0
-  } : null;
-
   const handlePropertySelect = (property: Property) => {
     setSelectedPropertyId(property.id);
-    if (viewMode === 'map') {
-      // Navigate to property detail with current filters
-      const searchParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '' && value !== 'All') {
-          searchParams.set(key, value.toString());
-        }
-      });
-      
-      const propertyUrl = searchParams.toString() 
-        ? `/properties/${property.id}?${searchParams.toString()}`
-        : `/properties/${property.id}`;
-      navigate(propertyUrl);
-    }
   };
 
-  return (
-    <div className="pt-16 md:pt-20 pb-16">
+  const handlePropertyDeselect = () => {
+    setSelectedPropertyId(undefined);
+  };
+
+  const selectedProperty = selectedPropertyId 
+    ? filteredProperties.find(p => p.id === selectedPropertyId)
+    : undefined;
+
+  if (isLoading) {
+    return (
       <LoadingSpinner 
-        isVisible={isLoading}
+        isVisible={true}
         message="Loading properties..."
-        variant="overlay"
       />
+    );
+  }
 
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-primary-700 mb-2">All Properties</h1>
-            <p className="text-gray-600">
-              Explore all rental properties with detailed analysis and map view.
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-2 mt-4 md:mt-0">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center px-3 py-2 rounded border transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-primary-500 text-white border-primary-500' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <Grid3X3 className="h-4 w-4 mr-1" />
-              Grid
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`flex items-center px-3 py-2 rounded border transition-colors ${
-                viewMode === 'map' 
-                  ? 'bg-primary-500 text-white border-primary-500' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <Map className="h-4 w-4 mr-1" />
-              Map
-            </button>
-          </div>
-        </div>
-
-        {!isLoading && (
-          <PropertyFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            onSearch={handleSearch}
-            isExpanded={isFiltersExpanded}
-            onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
-          />
-        )}
-
-        {!isLoading && (
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-600">
-              Showing {filteredProperties.length} of {allProperties.length} properties
+  return (
+    <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                {/* Add Property Button */}
+                <Link
+                  to="/properties/upload"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Add Property
+                </Link>
+                
+                {/* View Mode Toggle */}
+                <div className="flex bg-gray-100 rounded-lg p-1 self-center">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'grid'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                    <span>Grid</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('map')}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'map'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Map className="h-4 w-4" />
+                    <span>Map</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {viewMode === 'map' ? (
-          <div className="space-y-6">
-            <PropertyMap
-              properties={filteredProperties}
-              selectedPropertyId={selectedPropertyId}
-              onPropertySelect={handlePropertySelect}
-              height="600px"
-            />
-            {selectedPropertyId && (
-              <div className="bg-white rounded-lg shadow-md p-4">
-                <h3 className="font-semibold mb-2">Selected Property</h3>
-                {(() => {
-                  const selectedProperty = filteredProperties.find(p => p.id === selectedPropertyId);
-                  if (!selectedProperty) return null;
-                  
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <EnhancedPropertyCard 
-                        property={selectedProperty}
-                        dynamicMortgageParams={dynamicMortgageParams ? {
-                          ...dynamicMortgageParams,
-                          purchasePrice: selectedProperty.purchase_price
-                        } : undefined}
-                        currentFilters={filters}
-                      />
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PropertyFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onSearch={handleSearch}
+          isExpanded={isFiltersExpanded}
+          onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+        />
+
+        {filteredProperties.length === 0 ? (
+          <div className="mt-8 text-center">
+            <div className="bg-white rounded-lg p-12 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No properties found</h3>
+              <p className="text-gray-500 mb-6">
+                {hasFilters 
+                  ? "Try adjusting your filters to see more results."
+                  : "Get started by uploading your first property."}
+              </p>
+              <button
+                onClick={() => navigate('/properties/upload')}
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Add Your First Property
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {!isLoading && filteredProperties.map(property => (
-              <EnhancedPropertyCard 
-                key={property.id} 
-                property={property}
-                dynamicMortgageParams={dynamicMortgageParams ? {
-                  ...dynamicMortgageParams,
-                  purchasePrice: property.purchase_price
-                } : undefined}
-                currentFilters={filters}
+          <div className="mt-8">
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <NewPropertyCard />
+                {filteredProperties.map((property) => (
+                  <EnhancedPropertyCard
+                    key={property.id}
+                    property={property}
+                    dynamicMortgageParams={filters as MortgageParams}
+                    currentFilters={filters}
+                  />
+                ))}
+              </div>
+            ) : (
+              <PropertyMap
+                properties={filteredProperties}
+                selectedPropertyId={selectedPropertyId}
+                onPropertySelect={handlePropertySelect}
               />
-            ))}
-          </div>
-        )}
-
-        {!isLoading && filteredProperties.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No properties found matching your criteria.
+            )}
           </div>
         )}
       </div>

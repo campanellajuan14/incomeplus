@@ -5,8 +5,7 @@ import Home from './pages/Home';
 import Features from './pages/Features';
 import Pricing from './pages/Pricing';
 import Auth from './pages/Auth';
-import Dashboard from './pages/Dashboard';
-import PropertySheet from './pages/PropertySheet';
+import Properties from './pages/Properties';
 import PropertyUpload from './pages/PropertyUpload';
 import PropertyDetail from './pages/PropertyDetail';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -36,7 +35,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Public Route component that redirects to dashboard if authenticated
+// Public Route component that redirects to properties if authenticated
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
@@ -51,7 +50,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/properties" replace />;
   }
   
   return <>{children}</>;
@@ -93,19 +92,17 @@ function AppRoutes() {
         } 
       />
       <Route 
-        path="/dashboard" 
+        path="/properties" 
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <Properties />
           </ProtectedRoute>
         } 
       />
       <Route 
-        path="/properties" 
+        path="/dashboard" 
         element={
-          <ProtectedRoute>
-            <PropertySheet />
-          </ProtectedRoute>
+          <Navigate to="/properties" replace />
         } 
       />
       <Route 
@@ -130,7 +127,7 @@ function AppRoutes() {
 
 function AppContent() {
   const location = useLocation();
-  const isDashboardPage = location.pathname === '/dashboard';
+  const isPropertiesPage = location.pathname === '/properties';
 
   return (
     <SmoothScroll offset={80}>
@@ -144,7 +141,7 @@ function AppContent() {
           bottom={30} 
           right={30} 
           showAfter={400} 
-          showProgress={!isDashboardPage}
+          showProgress={!isPropertiesPage}
         />
       </div>
     </SmoothScroll>

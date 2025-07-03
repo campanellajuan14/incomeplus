@@ -46,7 +46,7 @@ const Auth: React.FC = () => {
   useEffect(() => {
     // Redirect if user is already logged in
     if (user) {
-      navigate('/dashboard');
+              navigate('/properties');
     }
   }, [user, navigate]);
 
@@ -153,7 +153,7 @@ const Auth: React.FC = () => {
           </h2>
           <p className="mt-2 text-gray-600">
             {formType === 'login' 
-              ? 'Enter your credentials to access your dashboard' 
+              ? 'Enter your credentials to access your properties' 
               : 'Sign up to start analyzing real estate investments'}
           </p>
         </div>
