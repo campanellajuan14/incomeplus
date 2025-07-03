@@ -188,25 +188,32 @@ const Properties: React.FC = () => {
           city: item.city,
           province: item.province,
           postal_code: item.postal_code || '',
-          purchase_price: item.purchase_price,
-          number_of_units: item.number_of_units,
+          purchase_price: Number(item.purchase_price) || 0,
+          number_of_units: Number(item.number_of_units) || 0,
           property_description: item.property_description || '',
           income_type: item.income_type as 'Estimated' | 'Actual' | 'Mixed' || 'Estimated',
           tenancy_type: item.tenancy_type as 'On Leases' | 'Month to Month' | 'Mixed' || 'On Leases',
-          units: Array.isArray(item.units) ? item.units as Unit[] : [],
-          property_taxes: item.property_taxes || 0,
-          insurance: item.insurance || 0,
-          hydro: item.hydro || 0,
-          gas: item.gas || 0,
-          water: item.water || 0,
-          waste_management: item.waste_management || 0,
-          maintenance: item.maintenance || 0,
-          management_fees: item.management_fees || 0,
-          miscellaneous: item.miscellaneous || 0,
+          units: Array.isArray(item.units) ? item.units.map((unit: any) => ({
+            id: unit.id || '',
+            unitType: unit.unitType || 'Other',
+            rentAmount: Number(unit.rentAmount) || 0,
+            rentCategory: unit.rentCategory || 'Market Value',
+            vacancyStatus: unit.vacancyStatus || 'Occupied',
+            projectedRent: Number(unit.projectedRent) || undefined
+          })) : [],
+          property_taxes: Number(item.property_taxes) || 0,
+          insurance: Number(item.insurance) || 0,
+          hydro: Number(item.hydro) || 0,
+          gas: Number(item.gas) || 0,
+          water: Number(item.water) || 0,
+          waste_management: Number(item.waste_management) || 0,
+          maintenance: Number(item.maintenance) || 0,
+          management_fees: Number(item.management_fees) || 0,
+          miscellaneous: Number(item.miscellaneous) || 0,
           down_payment_type: item.down_payment_type as 'Percent' | 'Fixed' || 'Percent',
-          down_payment_amount: item.down_payment_amount || 20,
-          amortization_period: item.amortization_period || 25,
-          mortgage_rate: item.mortgage_rate || 4.0,
+          down_payment_amount: Number(item.down_payment_amount) || 20,
+          amortization_period: Number(item.amortization_period) || 25,
+          mortgage_rate: Number(item.mortgage_rate) || 4.0,
           images: Array.isArray(item.images) ? item.images as string[] : [],
           agent_name: item.agent_name || '',
           agent_email: item.agent_email || '',
@@ -348,14 +355,25 @@ const Properties: React.FC = () => {
             {viewMode === 'grid' ? (
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProperties.map((property) => (
-                    <EnhancedPropertyCard
-                      key={property.id}
-                      property={property}
-                      dynamicMortgageParams={filters as MortgageParams}
-                      currentFilters={filters}
-                    />
-                  ))}
+                  {filteredProperties.map((property) => {
+                    // Construct proper mortgage parameters for each property
+                    const mortgageParams = {
+                      mortgageRate: filters.mortgageRate || property.mortgage_rate || 4.0,
+                      amortizationPeriod: filters.amortizationPeriod || property.amortization_period || 25,
+                      downPaymentType: (filters.downPaymentType && filters.downPaymentType !== 'All' ? filters.downPaymentType : property.down_payment_type) as 'Percent' | 'Fixed',
+                      downPaymentValue: filters.downPaymentValue || property.down_payment_amount || 20,
+                      purchasePrice: property.purchase_price
+                    };
+
+                    return (
+                      <EnhancedPropertyCard
+                        key={property.id}
+                        property={property}
+                        dynamicMortgageParams={mortgageParams}
+                        currentFilters={filters}
+                      />
+                    );
+                  })}
                 </div>
                 
                 {/* Infinite loading trigger and spinner */}
