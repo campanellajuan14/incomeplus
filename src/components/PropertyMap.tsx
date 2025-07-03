@@ -139,12 +139,16 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
             ${property.images.length > 0 ? `
               <img 
                 src="${property.images[0]}" 
+                loading="lazy"
                 style="
                   width: 100%;
                   height: 80px;
                   object-fit: cover;
                   display: block;
+                  transition: opacity 0.3s ease;
                 "
+                onload="this.style.opacity='1'"
+                onerror="this.style.display='none'"
               >
             ` : ''}
             <div style="padding: 12px;">

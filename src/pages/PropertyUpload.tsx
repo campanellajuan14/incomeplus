@@ -1,10 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Check, ArrowUp, Plus, Trash2, X, Upload } from 'lucide-react';
+import { AlertCircle, Check, ArrowUp, Plus, Trash2, X, Upload, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { useGeocoding } from '../hooks/useGeocoding';
 import LoadingSpinner from '../components/LoadingSpinner';
+import OptimizedImage from '../components/OptimizedImage';
+import { 
+  compressImages, 
+  CompressedImage, 
+  isValidImage, 
+  formatFileSize,
+  ImageCompressionOptions 
+} from '../utils/imageUtils';
 
 // Canadian provinces
 const CANADIAN_PROVINCES = [
@@ -104,7 +112,14 @@ const PropertyUpload: React.FC = () => {
   
   // Image upload state
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [compressedImages, setCompressedImages] = useState<CompressedImage[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionStats, setCompressionStats] = useState<{
+    originalSize: number;
+    compressedSize: number;
+    totalSavings: number;
+  }>({ originalSize: 0, compressedSize: 0, totalSavings: 0 });
   
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -157,8 +172,8 @@ const PropertyUpload: React.FC = () => {
     }));
   };
   
-  // Handle image selection
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle image selection and compression
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
     const newFiles = Array.from(e.target.files);
@@ -168,18 +183,88 @@ const PropertyUpload: React.FC = () => {
       setError('Maximum of 30 images allowed');
       return;
     }
-    
-    setImageFiles(prev => [...prev, ...newFiles]);
+
+    // Validate file types
+    const invalidFiles = newFiles.filter(file => !isValidImage(file));
+    if (invalidFiles.length > 0) {
+      setError(`Invalid file types: ${invalidFiles.map(f => f.name).join(', ')}`);
+      return;
+    }
+
+    // Check file sizes (before compression)
+    const oversizedFiles = newFiles.filter(file => file.size > 10 * 1024 * 1024); // 10MB limit
+    if (oversizedFiles.length > 0) {
+      setError(`Files too large (max 10MB): ${oversizedFiles.map(f => f.name).join(', ')}`);
+      return;
+    }
+
+    try {
+      setIsCompressing(true);
+      setError(null);
+
+      // Compression options for property images
+      const compressionOptions: ImageCompressionOptions = {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.85,
+        format: 'webp',
+        maxSizeKB: 300 // Target 300KB per image
+      };
+
+      // Compress images
+      const compressed = await compressImages(newFiles, compressionOptions);
+      
+      // Update states
+      setImageFiles(prev => [...prev, ...newFiles]);
+      setCompressedImages(prev => [...prev, ...compressed]);
+
+      // Calculate compression statistics
+      const originalSize = compressed.reduce((sum, img) => sum + img.originalSize, 0);
+      const compressedSize = compressed.reduce((sum, img) => sum + img.compressedSize, 0);
+      const totalSavings = originalSize - compressedSize;
+
+      setCompressionStats(prev => ({
+        originalSize: prev.originalSize + originalSize,
+        compressedSize: prev.compressedSize + compressedSize,
+        totalSavings: prev.totalSavings + totalSavings
+      }));
+
+      console.log(`Compressed ${compressed.length} images:`, {
+        originalSize: formatFileSize(originalSize),
+        compressedSize: formatFileSize(compressedSize),
+        savings: formatFileSize(totalSavings),
+        compressionRatio: Math.round((totalSavings / originalSize) * 100) + '%'
+      });
+
+    } catch (err) {
+      console.error('Image compression failed:', err);
+      setError('Failed to compress images. Please try again.');
+    } finally {
+      setIsCompressing(false);
+    }
   };
   
   // Remove selected image
   const removeSelectedImage = (index: number) => {
+    const removedFile = imageFiles[index];
+    const removedCompressed = compressedImages[index];
+    
     setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setCompressedImages(prev => prev.filter((_, i) => i !== index));
+    
+    // Update compression stats
+    if (removedCompressed) {
+      setCompressionStats(prev => ({
+        originalSize: prev.originalSize - removedCompressed.originalSize,
+        compressedSize: prev.compressedSize - removedCompressed.compressedSize,
+        totalSavings: prev.totalSavings - (removedCompressed.originalSize - removedCompressed.compressedSize)
+      }));
+    }
   };
   
-  // Upload images to Supabase Storage
+  // Upload compressed images to Supabase Storage
   const uploadImages = async (): Promise<string[]> => {
-    if (imageFiles.length === 0) {
+    if (compressedImages.length === 0) {
       setError('At least one property image is required');
       throw new Error('At least one property image is required');
     }
@@ -187,17 +272,22 @@ const PropertyUpload: React.FC = () => {
     const uploadedUrls: string[] = [];
     
     try {
-      console.log('Starting image uploads to bucket: property_images');
+      console.log('Starting compressed image uploads to bucket: property_images');
+      console.log(`Uploading ${compressedImages.length} compressed images (${formatFileSize(compressionStats.compressedSize)} total)`);
       
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      for (let i = 0; i < compressedImages.length; i++) {
+        const compressed = compressedImages[i];
+        const file = compressed.file;
+        const originalFile = imageFiles[i];
+        
+        // Use WebP extension for compressed files
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.webp`;
         const filePath = `${user!.id}/${fileName}`;
         
-        console.log(`Uploading file ${i + 1}/${imageFiles.length}: ${file.name} to ${filePath}`);
+        console.log(`Uploading compressed file ${i + 1}/${compressedImages.length}: ${originalFile.name} → ${fileName}`);
+        console.log(`Size: ${formatFileSize(compressed.originalSize)} → ${formatFileSize(compressed.compressedSize)} (${compressed.compressionRatio}% savings)`);
         
-        // Upload to Supabase Storage
+        // Upload compressed file to Supabase Storage
         const { data, error } = await supabase.storage
           .from('property_images')
           .upload(filePath, file, {
@@ -207,7 +297,7 @@ const PropertyUpload: React.FC = () => {
         
         if (error) {
           console.error('Storage upload error:', error);
-          throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+          throw new Error(`Failed to upload ${originalFile.name}: ${error.message}`);
         }
         
         if (data) {
@@ -224,15 +314,16 @@ const PropertyUpload: React.FC = () => {
           // Update progress
           setUploadProgress(prev => ({
             ...prev,
-            [file.name]: 100
+            [originalFile.name]: 100
           }));
         }
       }
       
-      console.log('All uploads completed. URLs:', uploadedUrls);
+      console.log('All compressed uploads completed. URLs:', uploadedUrls);
+      console.log(`Total compression savings: ${formatFileSize(compressionStats.totalSavings)} (${Math.round((compressionStats.totalSavings / compressionStats.originalSize) * 100)}%)`);
       return uploadedUrls;
     } catch (err: unknown) {
-      console.error('Error uploading images:', err);
+      console.error('Error uploading compressed images:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`Failed to upload images: ${errorMessage}`);
       throw err;
@@ -889,63 +980,107 @@ const PropertyUpload: React.FC = () => {
                     accept="image/*"
                     multiple
                     className="hidden"
+                    disabled={isCompressing}
                   />
                   
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center space-y-2 mx-auto"
+                    disabled={isCompressing}
+                    className="flex flex-col items-center space-y-2 mx-auto disabled:opacity-50"
                   >
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-500">
-                      Click to upload images 
-                      <span className="text-primary-500 font-medium"> (Max 30)</span>
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      JPEG, PNG or GIF up to 5MB each
-                    </span>
+                    {isCompressing ? (
+                      <>
+                        <Zap className="h-8 w-8 text-primary-500 animate-pulse" />
+                        <span className="text-sm text-primary-600 font-medium">
+                          Compressing images...
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm text-gray-500">
+                          Click to upload images 
+                          <span className="text-primary-500 font-medium"> (Max 30)</span>
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          JPEG, PNG or GIF up to 10MB each
+                        </span>
+                      </>
+                    )}
                   </button>
                 </div>
                 
                 {imageFiles.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Selected Images: {imageFiles.length}/30
-                    </h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-gray-700">
+                        Selected Images: {imageFiles.length}/30
+                      </h4>
+                      
+                      {compressionStats.totalSavings > 0 && (
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-green-600 font-medium">
+                            💾 {formatFileSize(compressionStats.totalSavings)} saved
+                          </span>
+                          <span className="text-gray-500">
+                            ({Math.round((compressionStats.totalSavings / compressionStats.originalSize) * 100)}% reduction)
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
-                      {imageFiles.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="h-24 w-full rounded border overflow-hidden bg-gray-50">
-                            <img
-                              src={URL.createObjectURL(file)}
-                              alt={`Property image ${index + 1}`}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          
-                          <button
-                            type="button"
-                            onClick={() => removeSelectedImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                          
-                          <span className="text-xs text-gray-500 truncate block mt-1">
-                            {file.name}
-                          </span>
-                          
-                          {uploadProgress[file.name] && (
-                            <div className="mt-1 h-1 w-full bg-gray-200 rounded overflow-hidden">
-                              <div 
-                                className="h-full bg-primary-500" 
-                                style={{ width: `${uploadProgress[file.name]}%` }}
-                              ></div>
+                      {imageFiles.map((file, index) => {
+                        const compressed = compressedImages[index];
+                        return (
+                          <div key={index} className="relative group">
+                            <div className="h-24 w-full rounded border overflow-hidden bg-gray-50">
+                              <OptimizedImage
+                                src={compressed?.dataUrl || URL.createObjectURL(file)}
+                                alt={`Property image ${index + 1}`}
+                                className="h-full w-full object-cover"
+                                placeholder="skeleton"
+                                priority={index < 6}
+                              />
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            
+                            <button
+                              type="button"
+                              onClick={() => removeSelectedImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                            
+                            <div className="mt-1 space-y-1">
+                              <span className="text-xs text-gray-500 truncate block">
+                                {file.name}
+                              </span>
+                              
+                              {compressed && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-green-600 font-medium">
+                                    WebP
+                                  </span>
+                                  <span className="text-gray-500">
+                                    {formatFileSize(compressed.compressedSize)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {uploadProgress[file.name] && (
+                              <div className="mt-1 h-1 w-full bg-gray-200 rounded overflow-hidden">
+                                <div 
+                                  className="h-full bg-primary-500 transition-all duration-300" 
+                                  style={{ width: `${uploadProgress[file.name]}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

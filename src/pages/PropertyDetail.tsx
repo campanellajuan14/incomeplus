@@ -6,6 +6,7 @@ import { supabase } from '../integrations/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
 import PropertyMap from '../components/PropertyMap';
+import OptimizedImage from '../components/OptimizedImage';
 import { useGeocoding } from '../hooks/useGeocoding';
 
 type Unit = {
@@ -265,28 +266,30 @@ const PropertyDetail: React.FC = () => {
             {property.images.length > 0 && (
               <div className="relative mb-6">
                 <div className="relative h-96 rounded-lg overflow-hidden">
-                  <img
+                  <OptimizedImage
                     src={property.images[currentImageIndex]}
                     alt={`${property.property_title} - Image ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
+                    placeholder="blur"
+                    priority={true}
                   />
                   
                   {property.images.length > 1 && (
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 z-10"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 z-10"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
                       
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded">
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded z-10">
                         {currentImageIndex + 1} of {property.images.length}
                       </div>
                     </>
@@ -303,7 +306,13 @@ const PropertyDetail: React.FC = () => {
                           index === currentImageIndex ? 'border-primary-500' : 'border-gray-200'
                         }`}
                       >
-                        <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                        <OptimizedImage 
+                          src={image} 
+                          alt={`Thumbnail ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                          placeholder="skeleton"
+                          priority={index < 4}
+                        />
                       </button>
                     ))}
                   </div>
