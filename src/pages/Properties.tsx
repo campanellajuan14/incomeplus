@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Grid3X3, Map } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
+import SearchBar from '../components/SearchBar';
 import PropertyFilters from '../components/PropertyFilters';
 import EnhancedPropertyCard from '../components/EnhancedPropertyCard';
 import PropertyMap from '../components/PropertyMap';
@@ -122,9 +123,7 @@ const Properties: React.FC = () => {
     filters,
     setFilters,
     filteredProperties,
-    handleSearch,
-    isFiltersExpanded,
-    setIsFiltersExpanded
+    handleSearch
   } = usePropertySearch(allProperties, urlFilters);
 
   const loadMoreProperties = () => {
@@ -284,59 +283,20 @@ const Properties: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
-                  {viewMode === 'grid' && hasMore && (
-                    <span className="text-gray-400"> • More available</span>
-                  )}
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                {/* View Mode Toggle */}
-                <div className="flex bg-gray-100 rounded-lg p-1 self-center">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === 'grid'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-900'
-                    }`}
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                    <span>Grid</span>
-                  </button>
-                  <button
-                    onClick={() => setViewMode('map')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === 'map'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-900'
-                    }`}
-                  >
-                    <Map className="h-4 w-4" />
-                    <span>Map</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <PropertyFilters
+        <SearchBar
           filters={filters}
           onFiltersChange={setFilters}
           onSearch={handleSearch}
-          isExpanded={isFiltersExpanded}
-          onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          propertiesCount={filteredProperties.length}
+          hasMore={hasMore}
+        />
+        
+        <PropertyFilters
+          filters={filters}
+          onFiltersChange={setFilters}
         />
 
         {filteredProperties.length === 0 ? (

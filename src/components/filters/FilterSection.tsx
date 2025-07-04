@@ -17,7 +17,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center space-x-2">
-        {icon && <div className="text-primary-500">{icon}</div>}
+        {icon && <div className="text-gray-800">{icon}</div>}
         <h4 className="text-sm font-semibold text-gray-800">{title}</h4>
       </div>
       <div className="space-y-3">

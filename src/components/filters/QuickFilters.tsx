@@ -1,7 +1,6 @@
 import React from 'react';
-import { Search, DollarSign, Users, MapPin } from 'lucide-react';
+import { DollarSign, Users } from 'lucide-react';
 import { PropertyFilters } from '../../types/filters';
-import SearchInput from './SearchInput';
 import RangeInput from './RangeInput';
 
 interface QuickFiltersProps {
@@ -19,23 +18,7 @@ const QuickFilters: React.FC<QuickFiltersProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* First row - Location Search */}
-      <div className="grid grid-cols-1">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide flex items-center">
-            <MapPin className="h-3 w-3 mr-1" />
-            City Search
-          </label>
-          <SearchInput
-            value={filters.city || ''}
-            onChange={(value) => updateFilter('city', value || undefined)}
-            placeholder="City or location..."
-            icon={<Search className="h-4 w-4" />}
-          />
-        </div>
-      </div>
-
-      {/* Second row - Financial Filters */}
+      {/* Financial Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide flex items-center">

@@ -11,12 +11,30 @@ const SortingControls: React.FC<SortingControlsProps> = ({
   filters,
   onFiltersChange
 }) => {
+  const getDefaultSortOrder = (sortBy: PropertyFilters['sortBy']): 'asc' | 'desc' => {
+    // For financial metrics, higher is generally better (desc)
+    // For price, lower might be preferred (asc)
+    switch (sortBy) {
+      case 'price':
+        return 'asc'; // Low → High (cheaper first)
+      case 'cashFlow':
+      case 'capRate':
+      case 'roi':
+      case 'yearlyRoi':
+      default:
+        return 'desc'; // High → Low (better performance first)
+    }
+  };
+
   const updateSort = (sortBy: PropertyFilters['sortBy']) => {
-    let newSortOrder: 'asc' | 'desc' = 'desc';
+    let newSortOrder: 'asc' | 'desc';
     
     // If clicking the same sort field, toggle the order
     if (filters.sortBy === sortBy) {
       newSortOrder = filters.sortOrder === 'desc' ? 'asc' : 'desc';
+    } else {
+      // Use logical default for the new sort field
+      newSortOrder = getDefaultSortOrder(sortBy);
     }
     
     onFiltersChange({
@@ -38,7 +56,21 @@ const SortingControls: React.FC<SortingControlsProps> = ({
 
   const getSortLabel = (sortBy: PropertyFilters['sortBy']) => {
     if (filters.sortBy !== sortBy) return '';
-    return filters.sortOrder === 'desc' ? 'High → Low' : 'Low → High';
+    
+    const isDesc = filters.sortOrder === 'desc';
+    
+    switch (sortBy) {
+      case 'price':
+        return isDesc ? 'High → Low' : 'Low → High';
+      case 'cashFlow':
+        return isDesc ? 'Best → Worst' : 'Worst → Best';
+      case 'capRate':
+      case 'roi':
+      case 'yearlyRoi':
+        return isDesc ? 'High → Low' : 'Low → High';
+      default:
+        return isDesc ? 'High → Low' : 'Low → High';
+    }
   };
 
   const sortOptions = [

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface RangeInputProps {
   minValue?: number;
@@ -8,6 +7,7 @@ interface RangeInputProps {
   onMaxChange: (value: number | undefined) => void;
   minPlaceholder?: string;
   maxPlaceholder?: string;
+  debounceMs?: number;
 }
 
 const RangeInput: React.FC<RangeInputProps> = ({
@@ -16,16 +16,51 @@ const RangeInput: React.FC<RangeInputProps> = ({
   onMinChange,
   onMaxChange,
   minPlaceholder = "Min",
-  maxPlaceholder = "Max"
+  maxPlaceholder = "Max",
+  debounceMs = 1000
 }) => {
+  const [localMinValue, setLocalMinValue] = useState(minValue?.toString() || '');
+  const [localMaxValue, setLocalMaxValue] = useState(maxValue?.toString() || '');
+
+  // Update local values when external values change
+  useEffect(() => {
+    setLocalMinValue(minValue?.toString() || '');
+  }, [minValue]);
+
+  useEffect(() => {
+    setLocalMaxValue(maxValue?.toString() || '');
+  }, [maxValue]);
+
+  // Debounce min value changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const numValue = localMinValue ? Number(localMinValue) : undefined;
+      if (numValue !== minValue) {
+        onMinChange(numValue);
+      }
+    }, debounceMs);
+
+    return () => clearTimeout(timeoutId);
+  }, [localMinValue, onMinChange, debounceMs, minValue]);
+
+  // Debounce max value changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const numValue = localMaxValue ? Number(localMaxValue) : undefined;
+      if (numValue !== maxValue) {
+        onMaxChange(numValue);
+      }
+    }, debounceMs);
+
+    return () => clearTimeout(timeoutId);
+  }, [localMaxValue, onMaxChange, debounceMs, maxValue]);
+
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    onMinChange(value ? Number(value) : undefined);
+    setLocalMinValue(e.target.value);
   };
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    onMaxChange(value ? Number(value) : undefined);
+    setLocalMaxValue(e.target.value);
   };
 
   return (
@@ -34,7 +69,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         <input
           type="number"
           placeholder={minPlaceholder}
-          value={minValue || ''}
+          value={localMinValue}
           onChange={handleMinChange}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-gray-400"
         />
@@ -46,7 +81,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         <input
           type="number"
           placeholder={maxPlaceholder}
-          value={maxValue || ''}
+          value={localMaxValue}
           onChange={handleMaxChange}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-gray-400"
         />
