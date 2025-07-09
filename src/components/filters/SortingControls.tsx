@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ListFilter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { PropertyFilters } from '../../types/filters';
 
 interface SortingControlsProps {
@@ -82,12 +82,12 @@ const SortingControls: React.FC<SortingControlsProps> = ({
   ];
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-medium text-gray-700 flex items-center">
-          <ArrowUpDown className="h-4 w-4 mr-2" />
-          Sort Properties
-        </h4>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-medium text-gray-600 uppercase tracking-wide flex items-center">
+          <ListFilter className="h-3 w-3 mr-1" />
+          Sort By
+        </label>
         {filters.sortBy && (
           <span className="text-xs text-gray-500">
             {getSortLabel(filters.sortBy)}
@@ -95,18 +95,18 @@ const SortingControls: React.FC<SortingControlsProps> = ({
         )}
       </div>
       
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
         {sortOptions.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => updateSort(key)}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center justify-between px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
               filters.sortBy === key
-                ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                ? 'bg-primary-50 text-primary-700 border-primary-200'
+                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
             }`}
           >
-            <span>{label}</span>
+            <span className="font-medium">{label}</span>
             {getSortIcon(key)}
           </button>
         ))}
