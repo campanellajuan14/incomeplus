@@ -65,14 +65,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           </p>
         )}
         
-        {/* Additional subtle animation - expanding circle */}
-        <div className="mt-6 flex justify-center">
-          <div className="relative">
-            <div className="w-8 h-8 border-2 border-primary-200 rounded-full opacity-30"></div>
-            <div className="absolute inset-0 w-8 h-8 border-2 border-primary-600 rounded-full animate-ping opacity-75"></div>
-            <div className="absolute inset-2 w-4 h-4 bg-primary-600 rounded-full animate-pulse"></div>
-          </div>
-        </div>
       </div>
     </div>
   );
