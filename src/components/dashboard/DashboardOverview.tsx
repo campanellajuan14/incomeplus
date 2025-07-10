@@ -6,7 +6,6 @@ import {
   Heart, 
   MessageSquare, 
   DollarSign,
-  Calendar,
   AlertCircle
 } from 'lucide-react';
 import { DashboardStats } from '../../types/dashboard';
@@ -33,12 +32,12 @@ const DashboardOverview: React.FC = () => {
       setStats({
         totalProperties: 12,
         savedProperties: 8,
-        activeInquiries: 3,
+        activeInquiries: 0,
         totalIncome: 15600,
         totalExpenses: 8200,
         netIncome: 7400,
         propertiesViewed: 47,
-        searchesPerformed: 23
+        searchesPerformed: 0
       });
       setIsLoading(false);
     }, 1000);
@@ -91,7 +90,7 @@ const DashboardOverview: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Total Properties"
           value={stats.totalProperties}
@@ -106,13 +105,7 @@ const DashboardOverview: React.FC = () => {
           icon={<Heart size={24} className="text-white" />}
           color="bg-green-500"
         />
-        <StatCard
-          title="Active Inquiries"
-          value={stats.activeInquiries}
-          change={-5.2}
-          icon={<MessageSquare size={24} className="text-white" />}
-          color="bg-yellow-500"
-        />
+
         <StatCard
           title="Net Income"
           value={stats.netIncome}
@@ -202,7 +195,7 @@ const DashboardOverview: React.FC = () => {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
               <div className="text-center">
                 <Eye className="mx-auto mb-2 text-gray-400" size={24} />
@@ -221,12 +214,7 @@ const DashboardOverview: React.FC = () => {
                 <span className="text-sm font-medium text-gray-700">Messages</span>
               </div>
             </button>
-            <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
-              <div className="text-center">
-                <Calendar className="mx-auto mb-2 text-gray-400" size={24} />
-                <span className="text-sm font-medium text-gray-700">Schedule</span>
-              </div>
-            </button>
+
           </div>
         </div>
       </div>

@@ -5,8 +5,7 @@ import {
   Heart, 
   BarChart3, 
   MessageSquare, 
-  Activity, 
-  Settings,
+  Activity,
   Search,
   Plus
 } from 'lucide-react';
@@ -15,10 +14,8 @@ import { DashboardTab, DashboardTabConfig } from '../types/dashboard';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
 import PropertyManagement from '../components/dashboard/PropertyManagement';
 import SavedProperties from '../components/dashboard/SavedProperties';
-import DashboardAnalytics from '../components/dashboard/DashboardAnalytics';
 import MessagingCenter from '../components/dashboard/MessagingCenter';
 import ActivityHistory from '../components/dashboard/ActivityHistory';
-import DashboardSettings from '../components/dashboard/DashboardSettings';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const DASHBOARD_TABS: DashboardTabConfig[] = [
@@ -38,11 +35,6 @@ const DASHBOARD_TABS: DashboardTabConfig[] = [
     icon: 'Heart'
   },
   {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: 'BarChart3'
-  },
-  {
     id: 'messages',
     label: 'Messages',
     icon: 'MessageSquare'
@@ -51,11 +43,6 @@ const DASHBOARD_TABS: DashboardTabConfig[] = [
     id: 'activity',
     label: 'Activity',
     icon: 'Activity'
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: 'Settings'
   }
 ];
 
@@ -84,8 +71,6 @@ const Dashboard: React.FC = () => {
         return <MessageSquare {...iconProps} />;
       case 'Activity':
         return <Activity {...iconProps} />;
-      case 'Settings':
-        return <Settings {...iconProps} />;
       default:
         return <Home {...iconProps} />;
     }
@@ -99,14 +84,10 @@ const Dashboard: React.FC = () => {
         return <PropertyManagement />;
       case 'saved':
         return <SavedProperties />;
-      case 'analytics':
-        return <DashboardAnalytics />;
       case 'messages':
         return <MessagingCenter />;
       case 'activity':
         return <ActivityHistory />;
-      case 'settings':
-        return <DashboardSettings />;
       default:
         return <DashboardOverview />;
     }
@@ -139,10 +120,6 @@ const Dashboard: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-end">
             <div className="flex space-x-4">
-              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <Search className="mr-2" size={16} />
-                Search Properties
-              </button>
               <button 
                 onClick={() => navigate('/properties/upload')}
                 className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -177,28 +154,6 @@ const Dashboard: React.FC = () => {
                   </button>
                 ))}
               </nav>
-            </div>
-
-            <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Properties</span>
-                  <span className="font-semibold text-blue-600">12</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Saved Properties</span>
-                  <span className="font-semibold text-green-600">8</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Active Inquiries</span>
-                  <span className="font-semibold text-orange-600">3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Unread Messages</span>
-                  <span className="font-semibold text-red-600">2</span>
-                </div>
-              </div>
             </div>
           </div>
 
