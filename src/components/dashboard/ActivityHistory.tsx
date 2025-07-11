@@ -140,9 +140,7 @@ const ActivityHistory: React.FC = () => {
   // Mock statistics - replace with actual data
   const stats = {
     propertiesViewed: 47,
-    searchesPerformed: 23,
-    propertiesSaved: 8,
-    inquiriesSent: 5
+    propertiesSaved: 8
   };
 
   return (
@@ -168,7 +166,7 @@ const ActivityHistory: React.FC = () => {
       </div>
 
       {/* Activity Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatCard
           title="Properties Viewed"
           value={stats.propertiesViewed}
@@ -176,22 +174,10 @@ const ActivityHistory: React.FC = () => {
           color="bg-blue-500"
         />
         <StatCard
-          title="Searches Performed"
-          value={stats.searchesPerformed}
-          icon={<Search size={24} className="text-white" />}
-          color="bg-green-500"
-        />
-        <StatCard
           title="Properties Saved"
           value={stats.propertiesSaved}
           icon={<Heart size={24} className="text-white" />}
           color="bg-red-500"
-        />
-        <StatCard
-          title="Inquiries Sent"
-          value={stats.inquiriesSent}
-          icon={<MessageSquare size={24} className="text-white" />}
-          color="bg-yellow-500"
         />
       </div>
 
@@ -200,7 +186,7 @@ const ActivityHistory: React.FC = () => {
         <div className="flex items-center space-x-4">
           <Filter size={20} className="text-gray-400" />
           <div className="flex flex-wrap gap-2">
-            {(['property_viewed', 'property_saved', 'search_performed', 'inquiry_sent'] as ActivityType[]).map((type) => (
+            {(['property_viewed', 'property_saved'] as ActivityType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => {

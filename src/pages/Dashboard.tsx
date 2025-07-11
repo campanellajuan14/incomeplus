@@ -5,7 +5,8 @@ import {
   Heart, 
   BarChart3, 
   MessageSquare, 
-  Activity,
+  Activity, 
+  Settings,
   Search,
   Plus
 } from 'lucide-react';
@@ -16,6 +17,7 @@ import PropertyManagement from '../components/dashboard/PropertyManagement';
 import SavedProperties from '../components/dashboard/SavedProperties';
 import MessagingCenter from '../components/dashboard/MessagingCenter';
 import ActivityHistory from '../components/dashboard/ActivityHistory';
+import DashboardSettings from '../components/dashboard/DashboardSettings';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const DASHBOARD_TABS: DashboardTabConfig[] = [
@@ -71,6 +73,8 @@ const Dashboard: React.FC = () => {
         return <MessageSquare {...iconProps} />;
       case 'Activity':
         return <Activity {...iconProps} />;
+      case 'Settings':
+        return <Settings {...iconProps} />;
       default:
         return <Home {...iconProps} />;
     }

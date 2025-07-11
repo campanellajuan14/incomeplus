@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet, Settings } from 'lucide-react';
+import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet, Settings, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
@@ -141,6 +141,12 @@ const Header: React.FC = () => {
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                   <Link
+                    to="/profile"
+                    className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
+                  >
+                    <User className="h-4 w-4 mr-3 text-gray-500" /> Profile
+                  </Link>
+                  <Link
                     to="/settings"
                     className="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-150"
                   >
@@ -215,7 +221,9 @@ const Header: React.FC = () => {
             // Show dashboard and properties when logged in (mobile)
             [
               { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-              { path: '/properties', label: 'Properties', icon: FileSpreadsheet }
+              { path: '/properties', label: 'Properties', icon: FileSpreadsheet },
+              { path: '/profile', label: 'Profile', icon: User },
+              { path: '/settings', label: 'Settings', icon: Settings }
             ].map((item) => (
               <Link
                 key={item.path}

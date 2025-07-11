@@ -16,12 +16,10 @@ const DashboardOverview: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalProperties: 0,
     savedProperties: 0,
-    activeInquiries: 0,
     totalIncome: 0,
     totalExpenses: 0,
     netIncome: 0,
-    propertiesViewed: 0,
-    searchesPerformed: 0
+    propertiesViewed: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,12 +30,10 @@ const DashboardOverview: React.FC = () => {
       setStats({
         totalProperties: 12,
         savedProperties: 8,
-        activeInquiries: 0,
         totalIncome: 15600,
         totalExpenses: 8200,
         netIncome: 7400,
-        propertiesViewed: 47,
-        searchesPerformed: 0
+        propertiesViewed: 47
       });
       setIsLoading(false);
     }, 1000);
@@ -105,7 +101,6 @@ const DashboardOverview: React.FC = () => {
           icon={<Heart size={24} className="text-white" />}
           color="bg-green-500"
         />
-
         <StatCard
           title="Net Income"
           value={stats.netIncome}
@@ -214,7 +209,6 @@ const DashboardOverview: React.FC = () => {
                 <span className="text-sm font-medium text-gray-700">Messages</span>
               </div>
             </button>
-
           </div>
         </div>
       </div>

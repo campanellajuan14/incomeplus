@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
 import PropertyUpload from './pages/PropertyUpload';
 import PropertyDetail from './pages/PropertyDetail';
+import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ScrollIndicator from './components/ScrollIndicator';
@@ -110,6 +111,22 @@ function AppRoutes() {
         } 
       />
       <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/properties/upload" 
         element={
           <ProtectedRoute>
@@ -122,14 +139,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PropertyDetail />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings" 
-        element={
-          <ProtectedRoute>
-            <Settings />
           </ProtectedRoute>
         } 
       />

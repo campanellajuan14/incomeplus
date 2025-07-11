@@ -147,12 +147,10 @@ export interface NotificationSettings {
 export interface DashboardStats {
   totalProperties: number;
   savedProperties: number;
-  activeInquiries: number;
   totalIncome: number;
   totalExpenses: number;
   netIncome: number;
   propertiesViewed: number;
-  searchesPerformed: number;
 }
 
 // Chart Data Types
@@ -193,7 +191,6 @@ export type DashboardTab =
   | 'overview'
   | 'properties'
   | 'saved'
-  | 'analytics'
   | 'messages'
   | 'activity'
   | 'settings';
