@@ -111,41 +111,7 @@ const DashboardOverview: React.FC = () => {
         />
       </div>
 
-      {/* Financial Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Income</h3>
-          <div className="text-3xl font-bold text-green-600 mb-2">
-            ${stats.totalIncome.toLocaleString()}
-          </div>
-          <div className="flex items-center text-green-600">
-            <TrendingUp size={16} />
-            <span className="text-sm ml-1">12% increase</span>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Expenses</h3>
-          <div className="text-3xl font-bold text-red-600 mb-2">
-            ${stats.totalExpenses.toLocaleString()}
-          </div>
-          <div className="flex items-center text-red-600">
-            <TrendingUp size={16} />
-            <span className="text-sm ml-1">3% increase</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Cash Flow</h3>
-          <div className="text-3xl font-bold text-blue-600 mb-2">
-            ${stats.netIncome.toLocaleString()}
-          </div>
-          <div className="flex items-center text-green-600">
-            <TrendingUp size={16} />
-            <span className="text-sm ml-1">18% increase</span>
-          </div>
-        </div>
-      </div>
 
       {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
