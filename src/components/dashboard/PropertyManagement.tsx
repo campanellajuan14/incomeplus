@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Edit3, Trash2, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { Property } from '../../types/property';
 import { PropertyIncome, PropertyExpense } from '../../types/dashboard';
 
 const PropertyManagement: React.FC = () => {
+  const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
@@ -95,7 +97,10 @@ const PropertyManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">My Properties</h2>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button 
+          onClick={() => navigate('/properties/upload')}
+          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
           <Plus size={16} className="mr-2" />
           Add Property
         </button>
@@ -112,7 +117,10 @@ const PropertyManagement: React.FC = () => {
           <p className="text-gray-600 mb-6">
             Start building your real estate portfolio by adding your first property.
           </p>
-          <button className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto">
+          <button 
+            onClick={() => navigate('/properties/upload')}
+            className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mx-auto"
+          >
             <Plus size={20} className="mr-2" />
             Add Your First Property
           </button>

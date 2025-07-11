@@ -7,8 +7,7 @@ import {
   MessageSquare, 
   Activity, 
   Settings,
-  Search,
-  Plus
+  Search
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DashboardTab, DashboardTabConfig } from '../types/dashboard';
@@ -121,26 +120,11 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-end">
-            <div className="flex space-x-4">
-              <button 
-                onClick={() => navigate('/properties/upload')}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Plus className="mr-2" size={16} />
-                Add Property
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Dashboard</h3>
-              </div>
               <nav className="p-2">
                 {DASHBOARD_TABS.map((tab) => (
                   <button
