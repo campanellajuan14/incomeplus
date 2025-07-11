@@ -11,6 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import InfiniteLoadingSpinner from '../components/InfiniteLoadingSpinner';
 import { usePropertySearch } from '../hooks/usePropertySearch';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { useSavedProperties } from '../hooks/useSavedProperties';
 import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
 import { Property, Unit } from '../types/property';
@@ -125,6 +126,27 @@ const Properties: React.FC = () => {
     filteredProperties,
     handleSearch
   } = usePropertySearch(allProperties, urlFilters);
+
+  const {
+    isSaved,
+    toggleSaved,
+    isLoading: savedPropertiesLoading
+  } = useSavedProperties();
+
+  const handleToggleSaved = async (propertyId: string) => {
+    const wasSaved = isSaved(propertyId);
+    const result = await toggleSaved(propertyId);
+    
+    if (result.success) {
+      if (wasSaved) {
+        console.log('Property removed from saved list', 'info');
+      } else {
+        console.log('Property saved successfully', 'success');
+      }
+    } else {
+      console.log(result.error || 'Failed to update saved status', 'error');
+    }
+  };
 
   const loadMoreProperties = () => {
     if (!isLoadingMore && hasMore) {
@@ -331,6 +353,8 @@ const Properties: React.FC = () => {
                         property={property}
                         dynamicMortgageParams={mortgageParams}
                         currentFilters={filters}
+                        isSaved={isSaved(property.id)}
+                        onToggleSaved={handleToggleSaved}
                       />
                     );
                   })}

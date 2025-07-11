@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters } from '../types/filters';
 import OptimizedImage from './OptimizedImage';
@@ -51,12 +51,16 @@ interface EnhancedPropertyCardProps {
   property: Property;
   dynamicMortgageParams?: MortgageParams; // New optional prop for dynamic calculations
   currentFilters?: PropertyFilters; // Add current filters to preserve all search criteria
+  isSaved?: boolean; // Whether the property is saved
+  onToggleSaved?: (propertyId: string) => void; // Callback for toggling saved status
 }
 
 const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({ 
   property, 
   dynamicMortgageParams,
-  currentFilters
+  currentFilters,
+  isSaved = false,
+  onToggleSaved
 }) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -122,7 +126,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
       className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
     >
       <div className="relative">
-        {images.length > 0 && (
+        {images.length > 0 ? (
           <div className="relative h-48 overflow-hidden">
             <OptimizedImage
               src={images[currentImageIndex]}
@@ -155,6 +159,26 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
               </svg>
             </div>
 
+            {/* Save/Unsave Button */}
+            {onToggleSaved && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSaved(property.id);
+                }}
+                className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 z-10 ${
+                  isSaved 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-600 hover:text-red-500'
+                }`}
+              >
+                <Heart 
+                  className="h-4 w-4" 
+                  fill={isSaved ? 'currentColor' : 'none'}
+                />
+              </button>
+            )}
+
             {images.length > 1 && (
               <div className="absolute bottom-2 right-2 flex items-center space-x-2 z-10">
                 <div className="bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
@@ -174,6 +198,29 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+            <div className="text-gray-400 text-sm">No Image Available</div>
+            {/* Save/Unsave Button for cards without images */}
+            {onToggleSaved && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSaved(property.id);
+                }}
+                className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 z-10 ${
+                  isSaved 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-white hover:bg-gray-50 text-gray-600 hover:text-red-500 border border-gray-300'
+                }`}
+              >
+                <Heart 
+                  className="h-4 w-4" 
+                  fill={isSaved ? 'currentColor' : 'none'}
+                />
+              </button>
             )}
           </div>
         )}
