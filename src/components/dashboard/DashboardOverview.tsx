@@ -113,101 +113,42 @@ const DashboardOverview: React.FC = () => {
 
 
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">Viewed property on Queen Street</p>
-                <p className="text-xs text-gray-500">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">Saved search for downtown condos</p>
-                <p className="text-xs text-gray-500">1 day ago</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">Received message from agent</p>
-                <p className="text-xs text-gray-500">2 days ago</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">Updated property listing</p>
-                <p className="text-xs text-gray-500">3 days ago</p>
-              </div>
-            </div>
-          </div>
-          <button className="mt-4 text-blue-600 text-sm font-medium hover:text-blue-700">
-            View all activity →
-          </button>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
-              <div className="text-center">
-                <Eye className="mx-auto mb-2 text-gray-400" size={24} />
-                <span className="text-sm font-medium text-gray-700">Search Properties</span>
-              </div>
-            </button>
-            <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
-              <div className="text-center">
-                <Heart className="mx-auto mb-2 text-gray-400" size={24} />
-                <span className="text-sm font-medium text-gray-700">View Saved</span>
-              </div>
-            </button>
-            <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors">
-              <div className="text-center">
-                <MessageSquare className="mx-auto mb-2 text-gray-400" size={24} />
-                <span className="text-sm font-medium text-gray-700">Messages</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Alerts & Notifications */}
+      {/* Recent Activity */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Alerts & Notifications</h3>
-        <div className="space-y-3">
-          <div className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <AlertCircle className="text-yellow-600 mr-3" size={20} />
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-800">
-                New properties matching your saved search "Downtown Condos"
-              </p>
-              <p className="text-xs text-yellow-600">3 new listings found</p>
+              <p className="text-sm text-gray-900">Viewed property on Queen Street</p>
+              <p className="text-xs text-gray-500">2 hours ago</p>
             </div>
-            <button className="text-yellow-700 text-sm font-medium hover:text-yellow-800">
-              View
-            </button>
           </div>
-          <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <MessageSquare className="text-blue-600 mr-3" size={20} />
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-800">
-                You have 2 unread messages from agents
-              </p>
-              <p className="text-xs text-blue-600">Response required</p>
+              <p className="text-sm text-gray-900">Saved search for downtown condos</p>
+              <p className="text-xs text-gray-500">1 day ago</p>
             </div>
-            <button className="text-blue-700 text-sm font-medium hover:text-blue-800">
-              Reply
-            </button>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-900">Received message from agent</p>
+              <p className="text-xs text-gray-500">2 days ago</p>
+            </div>
+          </div>
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-900">Updated property listing</p>
+              <p className="text-xs text-gray-500">3 days ago</p>
+            </div>
           </div>
         </div>
+        <button className="mt-4 text-blue-600 text-sm font-medium hover:text-blue-700">
+          View all activity →
+        </button>
       </div>
     </div>
   );

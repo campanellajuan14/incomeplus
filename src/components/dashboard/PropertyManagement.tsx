@@ -58,7 +58,7 @@ const PropertyManagement: React.FC = () => {
             setSelectedProperty(property);
             setShowIncomeModal(true);
           }}
-          className="flex-1 flex items-center justify-center px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+          className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
         >
           <DollarSign size={16} className="mr-1" />
           Add Income
@@ -68,7 +68,7 @@ const PropertyManagement: React.FC = () => {
             setSelectedProperty(property);
             setShowExpenseModal(true);
           }}
-          className="flex-1 flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+          className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
         >
           <TrendingUp size={16} className="mr-1" />
           Add Expense
@@ -99,7 +99,7 @@ const PropertyManagement: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-900">My Properties</h2>
         <button 
           onClick={() => navigate('/properties/upload')}
-          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          className="flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
         >
           <Plus size={16} className="mr-2" />
           Add Property
@@ -119,7 +119,7 @@ const PropertyManagement: React.FC = () => {
           </p>
           <button 
             onClick={() => navigate('/properties/upload')}
-            className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mx-auto"
+            className="flex items-center px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors mx-auto"
           >
             <Plus size={20} className="mr-2" />
             Add Your First Property
