@@ -192,7 +192,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
 
 
             {/* Status Badge */}
-            <div className="absolute -top-1 left-2 z-10 group-hover:animate-shake">
+            <div className="absolute -top-1 left-2 z-10">
               {/* Hanging chains/strings using SVG icon */}
               <div className="flex justify-center">
                 <img 
@@ -255,7 +255,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
             <div className="text-gray-400 text-sm">No Image Available</div>
             
             {/* Status Badge for cards without images */}
-            <div className="absolute top-0 left-2 z-10 group-hover:animate-shake">
+            <div className="absolute top-0 left-2 z-10">
               {/* Hanging chains/strings using SVG icon */}
               <div className="flex justify-center">
                 <img 
