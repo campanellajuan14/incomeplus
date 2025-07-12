@@ -444,6 +444,69 @@ export type Database = {
         }
         Relationships: []
       }
+      user_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          participant_1_id: string
+          participant_2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          participant_1_id: string
+          participant_2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          participant_1_id?: string
+          participant_2_id?: string
+        }
+        Relationships: []
+      }
+      user_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          recipient_id: string
+          related_property_id: string | null
+          sender_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          recipient_id: string
+          related_property_id?: string | null
+          sender_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          recipient_id?: string
+          related_property_id?: string | null
+          sender_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           bio: string | null

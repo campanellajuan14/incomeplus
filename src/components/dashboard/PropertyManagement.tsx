@@ -76,7 +76,8 @@ const PropertyManagement: React.FC = () => {
           created_at: item.created_at,
           latitude: item.latitude,
           longitude: item.longitude,
-          status: item.status as PropertyStatus || 'active'
+          status: item.status as PropertyStatus || 'active',
+          user_id: item.user_id
         }));
 
         setProperties(transformedProperties);

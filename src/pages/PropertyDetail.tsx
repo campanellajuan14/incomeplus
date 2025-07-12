@@ -51,6 +51,7 @@ type Property = {
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
+  user_id: string;
 };
 
 const PropertyDetail: React.FC = () => {
@@ -129,7 +130,8 @@ const PropertyDetail: React.FC = () => {
           agent_phone: data.agent_phone,
           created_at: data.created_at,
           latitude: data.latitude,
-          longitude: data.longitude
+          longitude: data.longitude,
+          user_id: data.user_id
         };
 
         setProperty(transformedProperty);

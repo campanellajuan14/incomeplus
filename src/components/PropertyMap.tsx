@@ -4,7 +4,7 @@ import LoadingSpinner from './LoadingSpinner';
 import { Property } from '../types/property';
 
 interface PropertyMapProps {
-  properties: Property[];
+  properties: (Property & { calculatedMetrics?: any })[];
   selectedPropertyId?: string;
   onPropertySelect?: (property: Property) => void;
   height?: string;

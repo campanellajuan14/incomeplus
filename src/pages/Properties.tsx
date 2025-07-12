@@ -239,7 +239,8 @@ const Properties: React.FC = () => {
           created_at: item.created_at,
           latitude: item.latitude,
           longitude: item.longitude,
-          status: item.status as 'active' | 'under_contract' | 'sold' || 'active'
+          status: item.status as 'active' | 'under_contract' | 'sold' || 'active',
+          user_id: item.user_id
         }));
 
         if (resetPagination) {

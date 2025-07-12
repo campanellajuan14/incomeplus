@@ -41,4 +41,5 @@ export type Property = {
   latitude?: number | null;
   longitude?: number | null;
   status?: 'active' | 'under_contract' | 'sold';
+  user_id?: string;
 };
