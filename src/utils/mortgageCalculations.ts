@@ -187,7 +187,6 @@ export const calculateYearlyPrincipalPaydown = (
   if (annualRate === 0) return loanAmount / years;
   
   const monthlyRate = annualRate / 100 / 12;
-  const numPayments = years * 12;
   const monthlyPayment = calculateMortgagePayment(loanAmount, annualRate, years);
   
   let balance = loanAmount;

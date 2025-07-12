@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Grid3X3, Map } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import SearchBar from '../components/SearchBar';
@@ -12,16 +12,14 @@ import InfiniteLoadingSpinner from '../components/InfiniteLoadingSpinner';
 import { usePropertySearch } from '../hooks/usePropertySearch';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import { useSavedProperties } from '../hooks/useSavedProperties';
-import { MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters as PropertyFiltersType } from '../types/filters';
-import { Property, Unit } from '../types/property';
+import { Property } from '../types/property';
 import { geocodePropertiesInBackground } from '../utils/geocodingUtils';
 
 const PROPERTIES_PER_PAGE = 12;
 
 const Properties: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,8 +127,7 @@ const Properties: React.FC = () => {
 
   const {
     isSaved,
-    toggleSaved,
-    isLoading: savedPropertiesLoading
+    toggleSaved
   } = useSavedProperties();
 
   const handleToggleSaved = async (propertyId: string) => {
@@ -241,7 +238,8 @@ const Properties: React.FC = () => {
           agent_phone: item.agent_phone || '',
           created_at: item.created_at,
           latitude: item.latitude,
-          longitude: item.longitude
+          longitude: item.longitude,
+          status: item.status as 'active' | 'under_contract' | 'sold' || 'active'
         }));
 
         if (resetPagination) {
@@ -286,14 +284,6 @@ const Properties: React.FC = () => {
     setSelectedPropertyId(property.id);
   };
 
-  const handlePropertyDeselect = () => {
-    setSelectedPropertyId(undefined);
-  };
-
-  const selectedProperty = selectedPropertyId 
-    ? filteredProperties.find(p => p.id === selectedPropertyId)
-    : undefined;
-
   if (isLoading) {
     return (
       <LoadingSpinner 
@@ -312,8 +302,6 @@ const Properties: React.FC = () => {
           onSearch={handleSearch}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          propertiesCount={filteredProperties.length}
-          hasMore={hasMore}
         />
         
         <PropertyFilters

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters } from '../types/filters';
+import { Property } from '../types/property';
 import OptimizedImage from './OptimizedImage';
 
 type Unit = {
@@ -12,39 +13,6 @@ type Unit = {
   rentCategory: 'Market Value' | 'Under Market Value';
   vacancyStatus: 'Occupied' | 'Vacant';
   projectedRent?: number;
-};
-
-type Property = {
-  id: string;
-  property_title: string;
-  address: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  purchase_price: number;
-  number_of_units: number;
-  property_description: string;
-  income_type: 'Estimated' | 'Actual' | 'Mixed';
-  tenancy_type: 'On Leases' | 'Month to Month' | 'Mixed';
-  units: Unit[];
-  property_taxes: number;
-  insurance: number;
-  hydro: number;
-  gas: number;
-  water: number;
-  waste_management: number;
-  maintenance: number;
-  management_fees: number;
-  miscellaneous: number;
-  down_payment_type: 'Percent' | 'Fixed';
-  down_payment_amount: number;
-  amortization_period: number;
-  mortgage_rate: number;
-  images: string[];
-  agent_name: string;
-  agent_email: string;
-  agent_phone: string;
-  created_at: string;
 };
 
 interface EnhancedPropertyCardProps {
@@ -96,6 +64,32 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   const goToImage = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIndex(index);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-success-500 text-white';
+      case 'under_contract':
+        return 'bg-warning-500 text-white';
+      case 'sold':
+        return 'bg-error-500 text-white';
+      default:
+        return 'bg-success-500 text-white';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'under_contract':
+        return 'Under Contract';
+      case 'sold':
+        return 'Sold';
+      default:
+        return 'Active';
+    }
   };
 
   const handleCardClick = () => {
@@ -153,10 +147,10 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
               </>
             )}
 
-            <div className="absolute bottom-2 left-2 bg-green-500 rounded-full p-1 z-10">
-              <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+
+            {/* Status Badge */}
+            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
+              {getStatusLabel(property.status || 'active')}
             </div>
 
             {/* Save/Unsave Button */}
@@ -203,6 +197,12 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
         ) : (
           <div className="relative h-48 bg-gray-200 flex items-center justify-center">
             <div className="text-gray-400 text-sm">No Image Available</div>
+            
+            {/* Status Badge for cards without images */}
+            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
+              {getStatusLabel(property.status || 'active')}
+            </div>
+            
             {/* Save/Unsave Button for cards without images */}
             {onToggleSaved && (
               <button

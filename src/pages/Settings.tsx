@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Bell, Lock, Eye, EyeOff } from 'lucide-react';
 import { NotificationSettings } from '../types/dashboard';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +6,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Settings: React.FC = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'notifications' | 'security'>('notifications');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

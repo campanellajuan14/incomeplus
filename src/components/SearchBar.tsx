@@ -10,8 +10,6 @@ interface SearchBarProps {
   onSearch: () => void;
   viewMode: 'grid' | 'map';
   onViewModeChange: (mode: 'grid' | 'map') => void;
-  propertiesCount: number;
-  hasMore?: boolean;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -19,9 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onFiltersChange,
   onSearch,
   viewMode,
-  onViewModeChange,
-  propertiesCount,
-  hasMore = false
+  onViewModeChange
 }) => {
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
 

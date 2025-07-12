@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TrendingUp, 
-  TrendingDown, 
   Eye, 
   Heart, 
-  MessageSquare, 
-  DollarSign,
-  AlertCircle
+  DollarSign
 } from 'lucide-react';
 import { DashboardStats } from '../../types/dashboard';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../integrations/supabase/client';
 
 const DashboardOverview: React.FC = () => {
   const { user } = useAuth();
@@ -24,29 +21,47 @@ const DashboardOverview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with actual API calls
-    // Simulating API call for now
-    setTimeout(() => {
-      setStats({
-        totalProperties: 12,
-        savedProperties: 8,
-        totalIncome: 15600,
-        totalExpenses: 8200,
-        netIncome: 7400,
-        propertiesViewed: 47
-      });
-      setIsLoading(false);
-    }, 1000);
+    const fetchDashboardStats = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user's own properties count
+        const { count: userPropertiesCount } = await supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        // Fetch user's saved properties count
+        const { count: savedPropertiesCount } = await supabase
+          .from('saved_properties')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        setStats({
+          totalProperties: userPropertiesCount || 0,
+          savedProperties: savedPropertiesCount || 0,
+          totalIncome: 0,
+          totalExpenses: 0,
+          netIncome: 0,
+          propertiesViewed: 0
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
   }, [user]);
 
   const StatCard: React.FC<{
     title: string;
     value: string | number;
-    change?: number;
     icon: React.ReactNode;
     color: string;
     prefix?: string;
-  }> = ({ title, value, change, icon, color, prefix = '' }) => (
+  }> = ({ title, value, icon, color, prefix = '' }) => (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
       <div className="flex items-center justify-between">
         <div>
@@ -54,12 +69,6 @@ const DashboardOverview: React.FC = () => {
           <p className="text-2xl font-bold text-gray-900 mt-2">
             {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
           </p>
-          {change !== undefined && (
-            <div className={`flex items-center mt-2 ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-              <span className="text-sm ml-1">{Math.abs(change)}% from last month</span>
-            </div>
-          )}
         </div>
         <div className={`p-3 rounded-full ${color}`}>
           {icon}
@@ -88,23 +97,20 @@ const DashboardOverview: React.FC = () => {
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
-          title="Total Properties"
+          title="My Properties"
           value={stats.totalProperties}
-          change={8.5}
           icon={<Eye size={24} className="text-white" />}
           color="bg-blue-500"
         />
         <StatCard
           title="Saved Properties"
           value={stats.savedProperties}
-          change={12.3}
           icon={<Heart size={24} className="text-white" />}
           color="bg-green-500"
         />
         <StatCard
           title="Net Income"
           value={stats.netIncome}
-          change={15.8}
           icon={<DollarSign size={24} className="text-white" />}
           color="bg-purple-500"
           prefix="$"

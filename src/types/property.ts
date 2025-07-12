@@ -40,4 +40,5 @@ export type Property = {
   created_at: string;
   latitude?: number | null;
   longitude?: number | null;
+  status?: 'active' | 'under_contract' | 'sold';
 };

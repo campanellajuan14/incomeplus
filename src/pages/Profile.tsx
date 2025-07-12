@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, Save } from 'lucide-react';
 import { UserProfile } from '../types/dashboard';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +6,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Profile: React.FC = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   

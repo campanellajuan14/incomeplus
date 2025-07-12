@@ -1,74 +1,111 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Bell, Trash2, Edit3, MapPin, DollarSign } from 'lucide-react';
-import { SavedProperty, SavedSearch } from '../../types/dashboard';
+import { Heart, Search, Mail, Trash2, Bell, Edit3, DollarSign, MapPin } from 'lucide-react';
+import { SavedSearch } from '../../types/dashboard';
 import { Property } from '../../types/property';
+import EnhancedPropertyCard from '../EnhancedPropertyCard';
+import { useSavedProperties } from '../../hooks/useSavedProperties';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../integrations/supabase/client';
+
+interface SavedPropertyWithDetails extends Property {
+  saved_notes?: string;
+  saved_at: string;
+}
 
 const SavedProperties: React.FC = () => {
-  const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([]);
+  const { user } = useAuth();
+  const { unsaveProperty } = useSavedProperties();
+  const [savedProperties, setSavedProperties] = useState<SavedPropertyWithDetails[]>([]);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [activeTab, setActiveTab] = useState<'properties' | 'searches'>('properties');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // TODO: Replace with actual API calls
-    setTimeout(() => {
-      setSavedProperties([
-        // Mock data - replace with actual API calls
-      ]);
-      setSavedSearches([
-        // Mock data - replace with actual API calls
-      ]);
+  // Fetch saved properties with full property details
+  const fetchSavedProperties = async () => {
+    if (!user) {
       setIsLoading(false);
-    }, 1000);
-  }, []);
+      return;
+    }
 
-  const SavedPropertyCard: React.FC<{ savedProperty: SavedProperty }> = ({ savedProperty }) => (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              Sample Property Title
-            </h3>
-            <div className="flex items-center text-gray-600 mb-2">
-              <MapPin size={16} className="mr-1" />
-              <span className="text-sm">123 Main Street, Toronto, ON</span>
-            </div>
-            <div className="flex items-center text-green-600">
-              <DollarSign size={16} className="mr-1" />
-              <span className="font-semibold">$850,000</span>
-            </div>
-          </div>
-          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-            <Heart size={20} fill="currentColor" />
-          </button>
-        </div>
-        
-        {savedProperty.notes && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">{savedProperty.notes}</p>
-          </div>
-        )}
-        
-        <div className="flex justify-between text-sm text-gray-500 mb-4">
-          <span>Saved {new Date(savedProperty.created_at).toLocaleDateString()}</span>
-          <span>2 bed • 2 bath</span>
-        </div>
-        
-        <div className="flex space-x-2">
-          <button className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-            View Details
-          </button>
-          <button className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-            <Edit3 size={16} />
-          </button>
-          <button className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg">
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    try {
+      const { data, error } = await supabase
+        .from('saved_properties')
+        .select(`
+          id,
+          notes,
+          created_at,
+          properties (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching saved properties:', error);
+        return;
+      }
+
+      const propertiesWithSavedInfo = data?.map(saved => ({
+        ...saved.properties,
+        saved_notes: saved.notes,
+        saved_at: saved.created_at
+      })).filter(prop => prop.id) as SavedPropertyWithDetails[];
+
+      setSavedProperties(propertiesWithSavedInfo || []);
+    } catch (error) {
+      console.error('Error fetching saved properties:', error);
+    }
+  };
+
+  // Fetch saved searches
+  const fetchSavedSearches = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('saved_searches')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching saved searches:', error);
+        return;
+      }
+
+      setSavedSearches((data || []).filter(search => search.user_id) as SavedSearch[]);
+    } catch (error) {
+      console.error('Error fetching saved searches:', error);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchSavedProperties(), fetchSavedSearches()]);
+      setIsLoading(false);
+    };
+
+    if (user) {
+      loadData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  // Handle removing a saved property
+  const handleRemoveProperty = async (propertyId: string) => {
+    const result = await unsaveProperty(propertyId);
+    if (result.success) {
+      setSavedProperties(prev => prev.filter(prop => prop.id !== propertyId));
+    }
+  };
+
+  // Handle contacting agent
+  const handleContactAgent = (property: SavedPropertyWithDetails) => {
+    const subject = encodeURIComponent(`Inquiry about ${property.property_title}`);
+    const body = encodeURIComponent(`Hi ${property.agent_name},\n\nI'm interested in your property listing: ${property.property_title} at ${property.address}, ${property.city}, ${property.province}.\n\nCould you please provide more information?\n\nThank you!`);
+    window.open(`mailto:${property.agent_email}?subject=${subject}&body=${body}`);
+  };
 
   const SavedSearchCard: React.FC<{ savedSearch: SavedSearch }> = ({ savedSearch }) => (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -185,14 +222,48 @@ const SavedProperties: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Start saving properties you're interested in to easily access them later.
               </p>
-              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={() => window.location.href = '/properties'}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 Browse Properties
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {savedProperties.map((savedProperty) => (
-                <SavedPropertyCard key={savedProperty.id} savedProperty={savedProperty} />
+              {savedProperties.map((property) => (
+                <div key={property.id} className="relative">
+                  <EnhancedPropertyCard
+                    property={property}
+                    isSaved={true}
+                    onToggleSaved={() => handleRemoveProperty(property.id)}
+                  />
+                  
+                  {/* Additional overlay with notes and actions */}
+                  <div className="absolute top-2 right-12 flex space-x-1 z-20">
+                    <button
+                      onClick={() => handleContactAgent(property)}
+                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
+                      title="Contact Agent"
+                    >
+                      <Mail size={16} className="text-blue-600" />
+                    </button>
+                  </div>
+
+                  {/* Notes overlay if there are notes */}
+                  {property.saved_notes && (
+                    <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg p-2 shadow-sm z-10">
+                      <p className="text-xs text-gray-700 line-clamp-2">{property.saved_notes}</p>
+                    </div>
+                  )}
+
+                  {/* Saved date */}
+                  <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded px-2 py-1 z-10">
+                    <span className="text-xs text-gray-600">
+                      Saved {new Date(property.saved_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -227,4 +298,4 @@ const SavedProperties: React.FC = () => {
   );
 };
 
-export default SavedProperties; 
+export default SavedProperties;

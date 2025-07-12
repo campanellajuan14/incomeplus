@@ -118,6 +118,7 @@ export type Database = {
           property_title: string
           province: string
           purchase_price: number
+          status: string | null
           tenancy_type: string
           units: Json
           updated_at: string
@@ -154,6 +155,7 @@ export type Database = {
           property_title: string
           province: string
           purchase_price: number
+          status?: string | null
           tenancy_type: string
           units?: Json
           updated_at?: string
@@ -190,6 +192,7 @@ export type Database = {
           property_title?: string
           province?: string
           purchase_price?: number
+          status?: string | null
           tenancy_type?: string
           units?: Json
           updated_at?: string

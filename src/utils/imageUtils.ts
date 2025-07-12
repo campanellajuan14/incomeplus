@@ -158,7 +158,7 @@ export const generateBlurDataUrl = (width: number = 40, height: number = 40): st
  * Creates a low-quality placeholder from an image
  */
 export const createImagePlaceholder = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');

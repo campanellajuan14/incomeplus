@@ -226,7 +226,7 @@ const PropertyMap: React.FC<PropertyMapProps> = memo(({
         
         // Create custom cluster renderer for better styling
         const renderer = {
-          render: ({ count, position }: any, stats: any) => {
+          render: ({ count, position }: any) => {
             const color = count > 10 ? '#dc2626' : count > 5 ? '#ea580c' : '#2563eb';
             const size = count > 20 ? 50 : count > 10 ? 45 : 40;
             

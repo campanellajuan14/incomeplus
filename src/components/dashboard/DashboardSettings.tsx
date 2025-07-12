@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Bell, Lock, Mail, Phone, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Bell, Lock, Save, Eye, EyeOff } from 'lucide-react';
 import { UserProfile, NotificationSettings } from '../../types/dashboard';
 import { useAuth } from '../../context/AuthContext';
 

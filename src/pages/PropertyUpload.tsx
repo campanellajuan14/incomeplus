@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Check, ArrowUp, Plus, Trash2, X, Upload, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
@@ -65,11 +65,14 @@ type Property = {
 
 const PropertyUpload: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { geocodeProperty, isGeocoding, geocodingError } = useGeocoding();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [editPropertyId, setEditPropertyId] = useState<string | null>(null);
+  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
@@ -120,6 +123,82 @@ const PropertyUpload: React.FC = () => {
     compressedSize: number;
     totalSavings: number;
   }>({ originalSize: 0, compressedSize: 0, totalSavings: 0 });
+  
+  // Check for edit mode and load property data
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && user) {
+      setEditPropertyId(editId);
+      loadPropertyForEdit(editId);
+    }
+  }, [searchParams, user]);
+
+  // Load property data for editing
+  const loadPropertyForEdit = async (propertyId: string) => {
+    try {
+      setIsLoadingProperty(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', propertyId)
+        .eq('user_id', user!.id)
+        .single();
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
+      }
+
+      if (data) {
+        // Transform the data to match our Property type
+        const transformedProperty: Property = {
+          property_title: data.property_title,
+          address: data.address,
+          city: data.city,
+          province: data.province,
+          postal_code: data.postal_code || '',
+          purchase_price: Number(data.purchase_price) || 0,
+          number_of_units: Number(data.number_of_units) || 0,
+          property_description: data.property_description || '',
+          income_type: data.income_type as 'Estimated' | 'Actual' | 'Mixed' || 'Estimated',
+          tenancy_type: data.tenancy_type as 'On Leases' | 'Month to Month' | 'Mixed' || 'On Leases',
+          units: Array.isArray(data.units) ? data.units.map((unit: any) => ({
+            id: unit.id || '',
+            unitType: unit.unitType || 'Other',
+            rentAmount: Number(unit.rentAmount) || 0,
+            rentCategory: unit.rentCategory || 'Market Value',
+            vacancyStatus: unit.vacancyStatus || 'Occupied',
+            projectedRent: Number(unit.projectedRent) || undefined
+          })) : [],
+          property_taxes: Number(data.property_taxes) || 0,
+          insurance: Number(data.insurance) || 0,
+          hydro: Number(data.hydro) || 0,
+          gas: Number(data.gas) || 0,
+          water: Number(data.water) || 0,
+          waste_management: Number(data.waste_management) || 0,
+          maintenance: Number(data.maintenance) || 0,
+          management_fees: Number(data.management_fees) || 0,
+          miscellaneous: Number(data.miscellaneous) || 0,
+          down_payment_type: data.down_payment_type as 'Percent' | 'Fixed' || 'Percent',
+          down_payment_amount: Number(data.down_payment_amount) || 20,
+          amortization_period: Number(data.amortization_period) || 25,
+          mortgage_rate: Number(data.mortgage_rate) || 4.0,
+          images: Array.isArray(data.images) ? data.images as string[] : [],
+          agent_name: data.agent_name || '',
+          agent_email: data.agent_email || '',
+          agent_phone: data.agent_phone || ''
+        };
+
+        setProperty(transformedProperty);
+      }
+    } catch (err) {
+      console.error('Error loading property for edit:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load property data');
+    } finally {
+      setIsLoadingProperty(false);
+    }
+  };
   
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -179,7 +258,8 @@ const PropertyUpload: React.FC = () => {
     const newFiles = Array.from(e.target.files);
     
     // Check if adding these would exceed the 30 image limit
-    if (imageFiles.length + newFiles.length > 30) {
+    const totalImages = property.images.length + imageFiles.length + newFiles.length;
+    if (totalImages > 30) {
       setError('Maximum of 30 images allowed');
       return;
     }
@@ -244,9 +324,16 @@ const PropertyUpload: React.FC = () => {
     }
   };
   
+  // Remove existing property image
+  const removeExistingImage = (index: number) => {
+    setProperty(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+  
   // Remove selected image
   const removeSelectedImage = (index: number) => {
-    const removedFile = imageFiles[index];
     const removedCompressed = compressedImages[index];
     
     setImageFiles(prev => prev.filter((_, i) => i !== index));
@@ -265,8 +352,7 @@ const PropertyUpload: React.FC = () => {
   // Upload compressed images to Supabase Storage
   const uploadImages = async (): Promise<string[]> => {
     if (compressedImages.length === 0) {
-      setError('At least one property image is required');
-      throw new Error('At least one property image is required');
+      return []; // Return empty array if no new images to upload
     }
     
     const uploadedUrls: string[] = [];
@@ -352,7 +438,9 @@ const PropertyUpload: React.FC = () => {
       return;
     }
     
-    if (imageFiles.length === 0) {
+    // Validation - check total images including existing ones
+    const totalImages = property.images.length + imageFiles.length;
+    if (totalImages === 0) {
       setError('At least one property image is required');
       return;
     }
@@ -369,26 +457,49 @@ const PropertyUpload: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      // 1. Upload images first
-      console.log('Starting image uploads...');
-      const uploadedImageUrls = await uploadImages();
-      console.log('Uploaded image URLs:', uploadedImageUrls);
+      // 1. Upload new images if any
+      let newImageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        console.log('Starting image uploads...');
+        newImageUrls = await uploadImages();
+        console.log('Uploaded new image URLs:', newImageUrls);
+      }
       
-      // 2. Add user_id and image URLs to property data
+      // 2. Combine existing and new image URLs
+      const allImageUrls = [...property.images, ...newImageUrls];
+      
+      // 3. Add user_id and all image URLs to property data
       const propertyData = {
         ...property,
         user_id: user.id,
-        images: uploadedImageUrls
+        images: allImageUrls
       };
       
       console.log('Prepared property data:', propertyData);
       
-      // 3. Insert property into Supabase
+      // 4. Insert or update property in Supabase
       console.log('Sending data to Supabase...');
-      const { data, error: supabaseError } = await supabase
-        .from('properties')
-        .insert(propertyData)
-        .select();
+      let data, supabaseError;
+      
+      if (editPropertyId) {
+        // Update existing property
+        const result = await supabase
+          .from('properties')
+          .update(propertyData)
+          .eq('id', editPropertyId)
+          .eq('user_id', user.id)
+          .select();
+        data = result.data;
+        supabaseError = result.error;
+      } else {
+        // Insert new property
+        const result = await supabase
+          .from('properties')
+          .insert(propertyData)
+          .select();
+        data = result.data;
+        supabaseError = result.error;
+      }
       
       if (supabaseError) {
         console.error('Supabase error:', supabaseError);
@@ -402,7 +513,7 @@ const PropertyUpload: React.FC = () => {
       const insertedProperty = data[0];
       console.log('Property inserted successfully:', insertedProperty);
       
-      // 4. Geocode the property address in the background
+      // 5. Geocode the property address in the background
       console.log('Starting geocoding process...');
       const geocodeResult = await geocodeProperty(
         insertedProperty.id,
@@ -419,7 +530,7 @@ const PropertyUpload: React.FC = () => {
         // Don't fail the entire operation if geocoding fails
       }
       
-      setSuccess('Property added successfully!');
+      setSuccess(editPropertyId ? 'Property updated successfully!' : 'Property added successfully!');
       
       // Redirect to property sheet after a brief delay
       setTimeout(() => {
@@ -429,15 +540,15 @@ const PropertyUpload: React.FC = () => {
     } catch (err: unknown) {
       console.error('Error adding property:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to add property: ${errorMessage}`);
+      setError(`Failed to ${editPropertyId ? 'update' : 'add'} property: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
   };
   
   // Show combined loading state for both property creation and geocoding
-  const isProcessing = isLoading || isGeocoding;
-  const loadingMessage = isGeocoding ? "Geocoding address..." : isLoading ? "Saving property..." : "Processing...";
+  const isProcessing = isLoading || isGeocoding || isLoadingProperty;
+  const loadingMessage = isLoadingProperty ? "Loading property data..." : isGeocoding ? "Geocoding address..." : isLoading ? `${editPropertyId ? 'Updating' : 'Saving'} property...` : "Processing...";
   
   return (
     <div className="pt-16 md:pt-20 pb-16">
@@ -449,9 +560,13 @@ const PropertyUpload: React.FC = () => {
       
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-primary-700 mb-2">Add New Property</h1>
+          <h1 className="text-2xl font-semibold text-primary-700 mb-2">
+            {editPropertyId ? 'Edit Property' : 'Add New Property'}
+          </h1>
           <p className="text-gray-600">
-            Enter comprehensive property details to add it to your portfolio.
+            {editPropertyId 
+              ? 'Update the property details below.' 
+              : 'Enter comprehensive property details to add it to your portfolio.'}
           </p>
         </div>
         
@@ -1011,11 +1126,11 @@ const PropertyUpload: React.FC = () => {
                   </button>
                 </div>
                 
-                {imageFiles.length > 0 && (
+                {(property.images.length > 0 || imageFiles.length > 0) && (
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm font-medium text-gray-700">
-                        Selected Images: {imageFiles.length}/30
+                        Property Images: {property.images.length + imageFiles.length}/30
                       </h4>
                       
                       {compressionStats.totalSavings > 0 && (
@@ -1031,14 +1146,44 @@ const PropertyUpload: React.FC = () => {
                     </div>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2">
+                      {/* Existing property images */}
+                      {property.images.map((imageUrl, index) => (
+                        <div key={`existing-${index}`} className="relative group">
+                          <div className="h-24 w-full rounded border overflow-hidden bg-gray-50">
+                            <OptimizedImage
+                              src={imageUrl}
+                              alt={`Property image ${index + 1}`}
+                              className="h-full w-full object-cover"
+                              placeholder="skeleton"
+                              priority={index < 6}
+                            />
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={() => removeExistingImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          
+                          <div className="mt-1">
+                            <span className="text-xs text-blue-600 font-medium block">
+                              Existing Image
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Newly selected images */}
                       {imageFiles.map((file, index) => {
                         const compressed = compressedImages[index];
                         return (
-                          <div key={index} className="relative group">
+                          <div key={`new-${index}`} className="relative group">
                             <div className="h-24 w-full rounded border overflow-hidden bg-gray-50">
                               <OptimizedImage
                                 src={compressed?.dataUrl || URL.createObjectURL(file)}
-                                alt={`Property image ${index + 1}`}
+                                alt={`New property image ${index + 1}`}
                                 className="h-full w-full object-cover"
                                 placeholder="skeleton"
                                 priority={index < 6}

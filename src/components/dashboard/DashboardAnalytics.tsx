@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, DollarSign, PieChart, Calendar } from 'lucide-react';
-import { FinancialMetrics, PropertyPerformance, ChartData } from '../../types/dashboard';
+import { BarChart3, TrendingUp, DollarSign, PieChart } from 'lucide-react';
+import { FinancialMetrics, PropertyPerformance } from '../../types/dashboard';
 
 const DashboardAnalytics: React.FC = () => {
   const [metrics, setMetrics] = useState<FinancialMetrics>({
