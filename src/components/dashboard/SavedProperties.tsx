@@ -238,24 +238,6 @@ const SavedProperties: React.FC = () => {
                     isSaved={true}
                     onToggleSaved={() => handleRemoveProperty(property.id)}
                   />
-                  
-                  {/* Additional overlay with notes and actions */}
-                  <div className="absolute top-2 right-2 flex space-x-1 z-20">
-                    <button
-                      onClick={() => handleContactAgent(property)}
-                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
-                      title="Contact Agent"
-                    >
-                      <Mail size={16} className="text-blue-600" />
-                    </button>
-                    <button
-                      onClick={() => handleRemoveProperty(property.id)}
-                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:bg-white transition-colors"
-                      title="Remove from Saved"
-                    >
-                      <Trash2 size={16} className="text-red-600" />
-                    </button>
-                  </div>
 
                   {/* Notes overlay if there are notes */}
                   {property.saved_notes && (
