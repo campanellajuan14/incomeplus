@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart, MessageSquare } from 'lucide-react';
+import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart, MessageSquare, Eye, X } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters } from '../types/filters';
 import { Property } from '../types/property';
@@ -34,6 +34,8 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showImageSlideshow, setShowImageSlideshow] = useState(false);
+  const [slideshowIndex, setSlideshowIndex] = useState(0);
   const images = property.images || [];
 
   // Use dynamic mortgage parameters if provided, otherwise fall back to property defaults
@@ -66,6 +68,24 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   const goToImage = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIndex(index);
+  };
+
+  const handleViewImages = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSlideshowIndex(currentImageIndex);
+    setShowImageSlideshow(true);
+  };
+
+  const nextSlideImage = () => {
+    setSlideshowIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevSlideImage = () => {
+    setSlideshowIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const goToSlideImage = (index: number) => {
+    setSlideshowIndex(index);
   };
 
   const getStatusColor = (status: string) => {
@@ -122,16 +142,29 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
         onClick={handleCardClick}
         className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
       >
-      <div className="relative">
+      <div className="relative group">
         {images.length > 0 ? (
           <div className="relative h-48 overflow-hidden">
             <OptimizedImage
               src={images[currentImageIndex]}
               alt={`${property.property_title} - Image ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover transition-all duration-300"
+              className="w-full h-full object-cover transition-all duration-300 group-hover:blur-sm"
               placeholder="blur"
               priority={currentImageIndex === 0}
             />
+            
+            {/* View Icon - appears on hover */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={handleViewImages}
+                className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 rounded-full p-3 transition-all duration-200 shadow-lg"
+              >
+                <Eye className="h-6 w-6" />
+              </button>
+            </div>
             
             {images.length > 1 && (
               <>
@@ -149,7 +182,6 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
                 </button>
               </>
             )}
-
 
             {/* Status Badge */}
             <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
@@ -198,7 +230,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
             )}
           </div>
         ) : (
-          <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+          <div className="relative h-48 bg-gray-200 flex items-center justify-center group">
             <div className="text-gray-400 text-sm">No Image Available</div>
             
             {/* Status Badge for cards without images */}
@@ -319,6 +351,70 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
         </div>
       </div>
       </div>
+      
+      {/* Image Slideshow Modal */}
+      {showImageSlideshow && images.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="relative max-w-4xl max-h-full w-full h-full flex items-center justify-center p-4">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowImageSlideshow(false)}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            
+            {/* Main Image */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              <OptimizedImage
+                src={images[slideshowIndex]}
+                alt={`${property.property_title} - Image ${slideshowIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+              />
+              
+              {/* Navigation Arrows */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prevSlideImage}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={nextSlideImage}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                </>
+              )}
+            </div>
+            
+            {/* Image Counter and Dots */}
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-2">
+                <div className="bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded">
+                  {slideshowIndex + 1} / {images.length}
+                </div>
+                <div className="flex space-x-2">
+                  {images.map((_: string, index: number) => (
+                    <button
+                      key={index}
+                      onClick={() => goToSlideImage(index)}
+                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                        index === slideshowIndex 
+                          ? 'bg-white' 
+                          : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Contact Agent Modal */}
       <ContactAgentModal
