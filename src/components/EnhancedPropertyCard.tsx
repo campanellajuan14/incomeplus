@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart, Eye, X } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters } from '../types/filters';
 import { Property } from '../types/property';
@@ -32,6 +32,8 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isSlideShowOpen, setIsSlideShowOpen] = useState(false);
+  const [slideShowIndex, setSlideShowIndex] = useState(0);
   const images = property.images || [];
 
   // Use dynamic mortgage parameters if provided, otherwise fall back to property defaults
@@ -69,13 +71,13 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-success-500 text-white';
+        return 'bg-green-500';
       case 'under_contract':
-        return 'bg-warning-500 text-white';
+        return 'bg-yellow-500';
       case 'sold':
-        return 'bg-error-500 text-white';
+        return 'bg-red-500';
       default:
-        return 'bg-success-500 text-white';
+        return 'bg-red-500';
     }
   };
 
@@ -114,21 +116,62 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
     }
   };
 
+  const openSlideShow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSlideShowIndex(currentImageIndex);
+    setIsSlideShowOpen(true);
+  };
+
+  const closeSlideShow = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setIsSlideShowOpen(false);
+  };
+
+  const nextSlideShowImage = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setSlideShowIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevSlideShowImage = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setSlideShowIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   return (
-    <div 
-      onClick={handleCardClick}
-      className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
-    >
-      <div className="relative">
+    <>
+      <div 
+        onClick={handleCardClick}
+        className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-200 cursor-pointer group"
+      >
+        <div className="relative">
         {images.length > 0 ? (
-          <div className="relative h-48 overflow-hidden">
+          <div className="relative h-48 overflow-hidden group/image">
             <OptimizedImage
               src={images[currentImageIndex]}
               alt={`${property.property_title} - Image ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover transition-all duration-300"
+              className="w-full h-full object-cover transition-all duration-300 group-hover/image:blur-sm"
               placeholder="blur"
               priority={currentImageIndex === 0}
             />
+            
+            {/* Hover overlay with view icon */}
+            <div 
+              className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={openSlideShow}
+                className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 rounded-full p-3 transition-all duration-200 transform hover:scale-110"
+              >
+                <Eye className="h-6 w-6" />
+              </button>
+            </div>
             
             {images.length > 1 && (
               <>
@@ -149,8 +192,21 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
 
 
             {/* Status Badge */}
-            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
-              {getStatusLabel(property.status || 'active')}
+            <div className="absolute -top-1 left-2 z-10 group-hover:animate-shake">
+              {/* Hanging chains/strings using SVG icon */}
+              <div className="flex justify-center">
+                <img 
+                  src="https://html.themeholy.com/piller/demo/assets/img/icon/sell_rent_icon.svg" 
+                  alt="Hanging chains"
+                  className="w-8 h-6 object-contain"
+                  loading="eager"
+                  decoding="sync"
+                />
+              </div>
+              {/* Tag - positioned to connect with chains */}
+              <div className={`${getStatusColor(property.status || 'active')} text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md -mt-2.5`}>
+                {getStatusLabel(property.status || 'active')}
+              </div>
             </div>
 
             {/* Save/Unsave Button */}
@@ -199,8 +255,21 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
             <div className="text-gray-400 text-sm">No Image Available</div>
             
             {/* Status Badge for cards without images */}
-            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
-              {getStatusLabel(property.status || 'active')}
+            <div className="absolute top-0 left-2 z-10 group-hover:animate-shake">
+              {/* Hanging chains/strings using SVG icon */}
+              <div className="flex justify-center">
+                <img 
+                  src="https://html.themeholy.com/piller/demo/assets/img/icon/sell_rent_icon.svg" 
+                  alt="Hanging chains"
+                  className="w-8 h-6 object-contain"
+                  loading="eager"
+                  decoding="sync"
+                />
+              </div>
+              {/* Tag - positioned to connect with chains */}
+              <div className={`${getStatusColor(property.status || 'active')} text-white px-3 py-1.5 rounded-md text-xs font-semibold shadow-md -mt-2.5`}>
+                {getStatusLabel(property.status || 'active')}
+              </div>
             </div>
             
             {/* Save/Unsave Button for cards without images */}
@@ -302,6 +371,90 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
         </div>
       </div>
     </div>
+    
+    {/* Slideshow Modal - Moved outside card container */}
+    {isSlideShowOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+          onClick={closeSlideShow}
+        >
+          <div 
+            className="relative w-full h-full flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeSlideShow}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 z-10"
+            >
+              <X className="h-8 w-8" />
+            </button>
+
+            {/* Previous button */}
+            {images.length > 1 && (
+              <button
+                onClick={prevSlideShowImage}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10"
+              >
+                <ChevronLeft className="h-12 w-12" />
+              </button>
+            )}
+
+            {/* Next button */}
+            {images.length > 1 && (
+              <button
+                onClick={nextSlideShowImage}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10"
+              >
+                <ChevronRight className="h-12 w-12" />
+              </button>
+            )}
+
+            {/* Main image */}
+            <div className="max-w-4xl max-h-full">
+              <img
+                src={images[slideShowIndex]}
+                alt={`${property.property_title} - Image ${slideShowIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+
+            {/* Image counter */}
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-2 rounded-full">
+                {slideShowIndex + 1} / {images.length}
+              </div>
+            )}
+
+            {/* Thumbnail navigation */}
+            {images.length > 1 && (
+              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-full overflow-x-auto">
+                {images.map((image: string, index: number) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSlideShowIndex(index);
+                    }}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                      index === slideShowIndex 
+                        ? 'border-white' 
+                        : 'border-transparent hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
