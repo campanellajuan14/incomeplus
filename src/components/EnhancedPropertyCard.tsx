@@ -183,12 +183,19 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
               </>
             )}
 
-            {/* Status Badge */}
-            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
-              {getStatusLabel(property.status || 'active')}
+            <div className="absolute -top-1 left-2 z-10">
+              <div className="flex justify-center -mb-2.5">
+                <img 
+                  src="https://html.themeholy.com/piller/demo/assets/img/icon/sell_rent_icon.svg" 
+                  alt="Chain" 
+                  className="w-8 h-6"
+                />
+              </div>
+              <div className={`px-2.5 py-1 rounded-full text-xs font-medium shadow-md ${getStatusColor(property.status || 'active')}`}>
+                {getStatusLabel(property.status || 'active')}
+              </div>
             </div>
 
-            {/* Save/Unsave Button */}
             {onToggleSaved && (
               <button
                 onClick={(e) => {
@@ -233,9 +240,18 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
           <div className="relative h-48 bg-gray-200 flex items-center justify-center group">
             <div className="text-gray-400 text-sm">No Image Available</div>
             
-            {/* Status Badge for cards without images */}
-            <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium z-10 ${getStatusColor(property.status || 'active')}`}>
-              {getStatusLabel(property.status || 'active')}
+            {/* Status Badge with Chain for cards without images */}
+            <div className="absolute -top-1 left-2 z-10">
+              <div className="flex justify-center">
+                <img 
+                  src="https://html.themeholy.com/piller/demo/assets/img/icon/sell_rent_icon.svg" 
+                  alt="Chain" 
+                  className="w-8 h-6"
+                />
+              </div>
+              <div className={`px-2 py-1 rounded-full text-xs font-medium shadow-md ${getStatusColor(property.status || 'active')}`}>
+                {getStatusLabel(property.status || 'active')}
+              </div>
             </div>
             
             {/* Save/Unsave Button for cards without images */}
