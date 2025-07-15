@@ -39,6 +39,155 @@ const MessagingCenter: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchConversations();
+      
+      // Handle new messages with better real-time support
+      const handleNewMessage = async (newMessage: UserMessage) => {
+        console.log('Processing new message:', newMessage);
+        
+        // Skip if this is an optimistic message (temporary ID)
+        if (newMessage.id.startsWith('temp-')) {
+          return;
+        }
+
+        // Load sender profile
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name')
+          .eq('user_id', newMessage.sender_id)
+          .maybeSingle();
+
+        const messageWithProfile: UserMessage = {
+          ...newMessage,
+          sender_profile: profiles ? { 
+            first_name: profiles.first_name || undefined, 
+            last_name: profiles.last_name || undefined 
+          } : { 
+            first_name: 'Unknown', 
+            last_name: 'User' 
+          }
+        };
+
+        // Determine the other user in this conversation
+        const otherUserId = newMessage.sender_id === user.id ? newMessage.recipient_id : newMessage.sender_id;
+        
+        // Update conversations state with new message in real-time
+        setConversations(prev => {
+          const updated = prev.map(conv => {
+            // Check if this conversation involves the other user
+            const isThisConversation = conv.other_user_id === otherUserId;
+            
+            if (isThisConversation) {
+              // Check if message already exists to prevent duplicates
+              const messageExists = conv.messages.some(msg => msg.id === newMessage.id);
+              if (messageExists) return conv;
+              
+              return {
+                ...conv,
+                messages: [...conv.messages, messageWithProfile],
+                last_message: newMessage.message,
+                last_message_at: newMessage.created_at,
+                // Only increment unread count if current user is recipient
+                unread_count: newMessage.recipient_id === user.id ? conv.unread_count + 1 : conv.unread_count
+              };
+            }
+            return conv;
+          });
+          
+          // If this is a new conversation and current user is recipient, create a new one
+          const hasConversation = prev.some(conv => conv.other_user_id === otherUserId);
+          
+          if (!hasConversation && newMessage.recipient_id === user.id) {
+            const senderProfile = messageWithProfile.sender_profile;
+            const newConversation: Conversation = {
+              id: otherUserId,
+              other_user_id: otherUserId,
+              other_user_name: `${senderProfile?.first_name || ''} ${senderProfile?.last_name || ''}`.trim() || 'Unknown User',
+              last_message: newMessage.message,
+              last_message_at: newMessage.created_at,
+              unread_count: 1,
+              messages: [messageWithProfile]
+            };
+            return [newConversation, ...updated];
+          }
+          
+          return updated;
+        });
+        
+        // Update selected conversation if it's the active one
+        setSelectedConversation(prev => {
+          if (!prev) return prev;
+          
+          if (prev.other_user_id === otherUserId) {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prev.messages.some(msg => msg.id === newMessage.id);
+            if (messageExists) return prev;
+            
+            return {
+              ...prev,
+              messages: [...prev.messages, messageWithProfile],
+              last_message: newMessage.message,
+              last_message_at: newMessage.created_at
+            };
+          }
+          return prev;
+        });
+      };
+
+      // Set up real-time subscription for messages where user is recipient
+      const recipientChannel = supabase
+        .channel('recipient-messages')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'user_messages',
+            filter: `recipient_id=eq.${user.id}`
+          },
+          async (payload) => {
+            console.log('New message received as recipient:', payload.new);
+            await handleNewMessage(payload.new as UserMessage);
+          }
+        )
+        .subscribe();
+
+      // Set up real-time subscription for messages where user is sender
+      const senderChannel = supabase
+        .channel('sender-messages')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'user_messages',
+            filter: `sender_id=eq.${user.id}`
+          },
+          async (payload) => {
+            console.log('New message sent by user:', payload.new);
+            await handleNewMessage(payload.new as UserMessage);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'user_messages',
+            filter: `recipient_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Message updated:', payload.new);
+            // Refresh conversations when a message is updated (e.g., marked as read)
+            fetchConversations();
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscriptions on unmount
+      return () => {
+        supabase.removeChannel(recipientChannel);
+        supabase.removeChannel(senderChannel);
+      };
     }
   }, [user]);
 
@@ -210,7 +359,13 @@ const MessagingCenter: React.FC = () => {
       }`}>
         <p className="text-sm">{message.message}</p>
         <p className={`text-xs mt-1 ${isFromUser ? 'text-blue-100' : 'text-gray-500'}`}>
-          {new Date(message.created_at).toLocaleString()}
+          {new Date(message.created_at).toLocaleString([], { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
           {!isFromUser && !message.read_at && (
             <span className="ml-2 text-xs">•</span>
           )}
@@ -223,23 +378,119 @@ const MessagingCenter: React.FC = () => {
     e.preventDefault();
     if (!messageText.trim() || !selectedConversation || !user) return;
 
+    const messageToSend = messageText.trim();
+    const currentTime = new Date().toISOString();
+    
+    // Create optimistic message immediately
+    const optimisticMessage: UserMessage = {
+      id: `temp-${Date.now()}-${Math.random()}`, // Temporary unique ID
+      sender_id: user.id,
+      recipient_id: selectedConversation.other_user_id,
+      subject: 'Reply',
+      message: messageToSend,
+      read_at: null,
+      created_at: currentTime,
+      conversation_id: selectedConversation.messages[0]?.conversation_id || crypto.randomUUID(),
+      related_property_id: null,
+      sender_profile: {
+        first_name: user.user_metadata?.first_name || 'You',
+        last_name: user.user_metadata?.last_name || ''
+      }
+    };
+
+    // Immediately update selected conversation with optimistic message
+    const updatedSelectedConversation = {
+      ...selectedConversation,
+      messages: [...selectedConversation.messages, optimisticMessage],
+      last_message: messageToSend,
+      last_message_at: currentTime
+    };
+    
+    setSelectedConversation(updatedSelectedConversation);
+    
+    // Immediately update conversations list with optimistic message
+    setConversations(prev => prev.map(conv => 
+      conv.id === selectedConversation.id 
+        ? {
+            ...conv,
+            messages: [...conv.messages, optimisticMessage],
+            last_message: messageToSend,
+            last_message_at: currentTime
+          }
+        : conv
+    ));
+
+    setMessageText(''); // Clear input after optimistic update
+
     try {
-      const { error } = await supabase
+      const newMessage = {
+        sender_id: user.id,
+        recipient_id: selectedConversation.other_user_id,
+        subject: 'Reply',
+        message: messageToSend,
+        conversation_id: selectedConversation.messages[0]?.conversation_id || crypto.randomUUID()
+      };
+
+      const { data, error } = await supabase
         .from('user_messages')
-        .insert({
-          sender_id: user.id,
-          recipient_id: selectedConversation.other_user_id,
-          subject: 'Reply',
-          message: messageText.trim(),
-          conversation_id: selectedConversation.messages[0]?.conversation_id || crypto.randomUUID()
-        });
+        .insert(newMessage)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      setMessageText('');
-      fetchConversations(); // Refresh conversations
+      // Replace optimistic message with real message
+      const realMessage: UserMessage = {
+        ...data,
+        sender_profile: {
+          first_name: user.user_metadata?.first_name || 'You',
+          last_name: user.user_metadata?.last_name || ''
+        }
+      };
+
+      // Update selected conversation with real message
+      setSelectedConversation(prev => prev ? {
+        ...prev,
+        messages: prev.messages.map(msg => 
+          msg.id === optimisticMessage.id ? realMessage : msg
+        )
+      } : null);
+
+      // Update conversations list with real message
+      setConversations(prev => prev.map(conv => 
+        conv.id === selectedConversation.id 
+          ? {
+              ...conv,
+              messages: conv.messages.map(msg => 
+                msg.id === optimisticMessage.id ? realMessage : msg
+              )
+            }
+          : conv
+      ));
+
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Remove optimistic message on error and restore input
+      setSelectedConversation(prev => prev ? {
+        ...prev,
+        messages: prev.messages.filter(msg => msg.id !== optimisticMessage.id),
+        last_message: prev.messages[prev.messages.length - 2]?.message || '',
+        last_message_at: prev.messages[prev.messages.length - 2]?.created_at || prev.last_message_at
+      } : null);
+
+      setConversations(prev => prev.map(conv => 
+        conv.id === selectedConversation.id 
+          ? {
+              ...conv,
+              messages: conv.messages.filter(msg => msg.id !== optimisticMessage.id),
+              last_message: conv.messages[conv.messages.length - 2]?.message || conv.last_message,
+              last_message_at: conv.messages[conv.messages.length - 2]?.created_at || conv.last_message_at
+            }
+          : conv
+      ));
+      
+      setMessageText(messageToSend); // Restore message text on error
     }
   };
 

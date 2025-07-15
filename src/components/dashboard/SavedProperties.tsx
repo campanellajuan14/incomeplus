@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Search, Mail, Trash2, Bell, Edit3, DollarSign, MapPin } from 'lucide-react';
+import { Heart, Search, Trash2, Bell, Edit3, DollarSign, MapPin } from 'lucide-react';
 import { SavedSearch } from '../../types/dashboard';
 import { Property } from '../../types/property';
 import EnhancedPropertyCard from '../EnhancedPropertyCard';
@@ -100,12 +100,6 @@ const SavedProperties: React.FC = () => {
     }
   };
 
-  // Handle contacting agent
-  const handleContactAgent = (property: SavedPropertyWithDetails) => {
-    const subject = encodeURIComponent(`Inquiry about ${property.property_title}`);
-    const body = encodeURIComponent(`Hi ${property.agent_name},\n\nI'm interested in your property listing: ${property.property_title} at ${property.address}, ${property.city}, ${property.province}.\n\nCould you please provide more information?\n\nThank you!`);
-    window.open(`mailto:${property.agent_email}?subject=${subject}&body=${body}`);
-  };
 
   const SavedSearchCard: React.FC<{ savedSearch: SavedSearch }> = ({ savedSearch }) => (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
