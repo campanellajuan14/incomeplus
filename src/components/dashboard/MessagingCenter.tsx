@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Clock, CheckCircle, User, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MessageSquare, Send, Clock, User, Mail, Wifi, WifiOff, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import { useAuth } from '../../context/AuthContext';
+import { useActivityTracker } from '../../hooks/useActivityTracker';
 
 interface UserMessage {
   id: string;
@@ -17,6 +18,7 @@ interface UserMessage {
     first_name?: string;
     last_name?: string;
   };
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
 }
 
 interface Conversation {
@@ -31,25 +33,39 @@ interface Conversation {
 
 const MessagingCenter: React.FC = () => {
   const { user } = useAuth();
+  const { trackActivity } = useActivityTracker();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversation?.messages) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [selectedConversation?.messages, scrollToBottom]);
 
   useEffect(() => {
     if (user) {
       fetchConversations();
       
-      // Handle new messages with better real-time support
       const handleNewMessage = async (newMessage: UserMessage) => {
         console.log('Processing new message:', newMessage);
         
-        // Skip if this is an optimistic message (temporary ID)
         if (newMessage.id.startsWith('temp-')) {
           return;
         }
 
-        // Load sender profile
         const { data: profiles } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
@@ -67,17 +83,13 @@ const MessagingCenter: React.FC = () => {
           }
         };
 
-        // Determine the other user in this conversation
         const otherUserId = newMessage.sender_id === user.id ? newMessage.recipient_id : newMessage.sender_id;
         
-        // Update conversations state with new message in real-time
         setConversations(prev => {
           const updated = prev.map(conv => {
-            // Check if this conversation involves the other user
             const isThisConversation = conv.other_user_id === otherUserId;
             
             if (isThisConversation) {
-              // Check if message already exists to prevent duplicates
               const messageExists = conv.messages.some(msg => msg.id === newMessage.id);
               if (messageExists) return conv;
               
@@ -86,14 +98,12 @@ const MessagingCenter: React.FC = () => {
                 messages: [...conv.messages, messageWithProfile],
                 last_message: newMessage.message,
                 last_message_at: newMessage.created_at,
-                // Only increment unread count if current user is recipient
                 unread_count: newMessage.recipient_id === user.id ? conv.unread_count + 1 : conv.unread_count
               };
             }
             return conv;
           });
           
-          // If this is a new conversation and current user is recipient, create a new one
           const hasConversation = prev.some(conv => conv.other_user_id === otherUserId);
           
           if (!hasConversation && newMessage.recipient_id === user.id) {
@@ -113,27 +123,28 @@ const MessagingCenter: React.FC = () => {
           return updated;
         });
         
-        // Update selected conversation if it's the active one
         setSelectedConversation(prev => {
           if (!prev) return prev;
           
           if (prev.other_user_id === otherUserId) {
-            // Check if message already exists to prevent duplicates
             const messageExists = prev.messages.some(msg => msg.id === newMessage.id);
             if (messageExists) return prev;
             
-            return {
+            const updatedConversation = {
               ...prev,
               messages: [...prev.messages, messageWithProfile],
               last_message: newMessage.message,
               last_message_at: newMessage.created_at
             };
+            
+            setTimeout(scrollToBottom, 100);
+            
+            return updatedConversation;
           }
           return prev;
         });
       };
 
-      // Set up real-time subscription for messages where user is recipient
       const recipientChannel = supabase
         .channel('recipient-messages')
         .on(
@@ -149,9 +160,15 @@ const MessagingCenter: React.FC = () => {
             await handleNewMessage(payload.new as UserMessage);
           }
         )
+        .on('system', {}, (payload) => {
+          if (payload.type === 'connected') {
+            setIsConnected(true);
+          } else if (payload.type === 'error') {
+            setIsConnected(false);
+          }
+        })
         .subscribe();
 
-      // Set up real-time subscription for messages where user is sender
       const senderChannel = supabase
         .channel('sender-messages')
         .on(
@@ -167,26 +184,72 @@ const MessagingCenter: React.FC = () => {
             await handleNewMessage(payload.new as UserMessage);
           }
         )
+        .on('system', {}, (payload) => {
+          if (payload.type === 'connected') {
+            setIsConnected(true);
+          } else if (payload.type === 'error') {
+            setIsConnected(false);
+          }
+        })
+        .subscribe();
+
+      const readStatusChannel = supabase
+        .channel('read-status-updates')
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'user_messages',
-            filter: `recipient_id=eq.${user.id}`
+            filter: `sender_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('Message updated:', payload.new);
-            // Refresh conversations when a message is updated (e.g., marked as read)
-            fetchConversations();
+            console.log('Message read status updated for sender:', payload);
+            console.log('Payload details:', {
+              old: payload.old,
+              new: payload.new,
+              eventType: payload.eventType
+            });
+            const updatedMessage = payload.new as UserMessage;
+            
+            if (updatedMessage && updatedMessage.read_at) {
+              console.log('Updating message read status in UI:', updatedMessage.id);
+              setSelectedConversation(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  messages: prev.messages.map(msg => 
+                    msg.id === updatedMessage.id 
+                      ? { ...msg, read_at: updatedMessage.read_at, status: 'read' }
+                      : msg
+                  )
+                };
+              });
+              
+              setConversations(prev => prev.map(conv => ({
+                ...conv,
+                messages: conv.messages.map(msg => 
+                  msg.id === updatedMessage.id 
+                    ? { ...msg, read_at: updatedMessage.read_at, status: 'read' }
+                    : msg
+                )
+              })));
+            }
           }
         )
+        .on('system', {}, (payload) => {
+          if (payload.type === 'connected') {
+            setIsConnected(true);
+          } else if (payload.type === 'error') {
+            setIsConnected(false);
+          }
+        })
         .subscribe();
 
-      // Cleanup subscriptions on unmount
       return () => {
         supabase.removeChannel(recipientChannel);
         supabase.removeChannel(senderChannel);
+        supabase.removeChannel(readStatusChannel);
       };
     }
   }, [user]);
@@ -197,7 +260,6 @@ const MessagingCenter: React.FC = () => {
     try {
       console.log('Fetching conversations for user:', user.id);
       
-      // Fetch messages first
       const { data: messages, error } = await supabase
         .from('user_messages')
         .select('*')
@@ -217,12 +279,10 @@ const MessagingCenter: React.FC = () => {
         return;
       }
 
-      // Get unique user IDs to fetch profiles
       const userIds = Array.from(new Set(
         messages.map(msg => msg.sender_id === user.id ? msg.recipient_id : msg.sender_id)
       ));
 
-      // Fetch user profiles for these users
       const { data: profiles } = await supabase
         .from('user_profiles')
         .select('user_id, first_name, last_name')
@@ -230,22 +290,22 @@ const MessagingCenter: React.FC = () => {
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      // Group messages by conversation
       const conversationMap = new Map<string, Conversation>();
 
       messages?.forEach((message: any) => {
         const otherUserId = message.sender_id === user.id ? message.recipient_id : message.sender_id;
         const otherUserProfile = profileMap.get(otherUserId);
-        const otherUserName = message.sender_id === user.id 
-          ? 'You' 
-          : `${otherUserProfile?.first_name || ''} ${otherUserProfile?.last_name || ''}`.trim() || 'Unknown User';
+        
+        const otherUserName = `${otherUserProfile?.first_name || ''} ${otherUserProfile?.last_name || ''}`.trim() || 'Unknown User';
 
         if (!conversationMap.has(otherUserId)) {
+          const lastMessageFromOther = message.sender_id !== user.id ? message.message : '';
+          
           conversationMap.set(otherUserId, {
             id: otherUserId,
             other_user_id: otherUserId,
             other_user_name: otherUserName,
-            last_message: message.message,
+            last_message: lastMessageFromOther,
             last_message_at: message.created_at,
             unread_count: 0,
             messages: []
@@ -253,6 +313,12 @@ const MessagingCenter: React.FC = () => {
         }
 
         const conversation = conversationMap.get(otherUserId)!;
+        
+        if (message.sender_id !== user.id && new Date(message.created_at) > new Date(conversation.last_message_at)) {
+          conversation.last_message = message.message;
+          conversation.last_message_at = message.created_at;
+        }
+        
         const userMessage: UserMessage = {
           id: message.id,
           sender_id: message.sender_id,
@@ -263,17 +329,18 @@ const MessagingCenter: React.FC = () => {
           created_at: message.created_at,
           related_property_id: message.related_property_id,
           conversation_id: message.conversation_id,
-          sender_profile: message.sender_profile
+          sender_profile: otherUserProfile ? {
+            first_name: otherUserProfile.first_name || undefined,
+            last_name: otherUserProfile.last_name || undefined
+          } : undefined
         };
         conversation.messages.push(userMessage);
         
-        // Count unread messages (messages sent to current user that haven't been read)
         if (message.recipient_id === user.id && !message.read_at) {
           conversation.unread_count++;
         }
       });
 
-      // Sort conversations by last message time
       const sortedConversations = Array.from(conversationMap.values())
         .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
 
@@ -319,17 +386,36 @@ const MessagingCenter: React.FC = () => {
 
   const selectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    
-    // Mark messages as read
-    if (conversation.unread_count > 0) {
-      await markMessagesAsRead(conversation.other_user_id);
-    }
+    await markMessagesAsRead(conversation.other_user_id);
   };
 
   const markMessagesAsRead = async (otherUserId: string) => {
     if (!user) return;
 
     try {
+      console.log('Marking messages as read for conversation with:', otherUserId);
+      
+      // Get all unread messages from this sender first
+      const { data: unreadMessages, error: fetchError } = await supabase
+        .from('user_messages')
+        .select('id')
+        .eq('sender_id', otherUserId)
+        .eq('recipient_id', user.id)
+        .is('read_at', null);
+
+      if (fetchError) {
+        console.error('Error fetching unread messages:', fetchError);
+        return;
+      }
+
+      if (!unreadMessages || unreadMessages.length === 0) {
+        console.log('No unread messages to mark as read');
+        return;
+      }
+
+      console.log('Found unread messages to mark as read:', unreadMessages.length);
+
+      // Update all unread messages from this sender
       const { error } = await supabase
         .from('user_messages')
         .update({ read_at: new Date().toISOString() })
@@ -337,16 +423,68 @@ const MessagingCenter: React.FC = () => {
         .eq('recipient_id', user.id)
         .is('read_at', null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error marking messages as read:', error);
+        throw error;
+      }
 
-      // Update local state
+      console.log('Successfully marked messages as read, real-time should trigger for sender');
+
+      // Update local state immediately for better UX
       setConversations(prev => prev.map(conv => 
         conv.id === otherUserId 
           ? { ...conv, unread_count: 0 }
           : conv
       ));
+
+      setSelectedConversation(prev => {
+        if (!prev || prev.other_user_id !== otherUserId) return prev;
+        return {
+          ...prev,
+          messages: prev.messages.map(msg => 
+            msg.sender_id === otherUserId && msg.recipient_id === user.id && !msg.read_at
+              ? { ...msg, read_at: new Date().toISOString(), status: 'read' }
+              : msg
+          ),
+          unread_count: 0
+        };
+      });
     } catch (error) {
       console.error('Error marking messages as read:', error);
+    }
+  };
+
+
+  const getMessageStatus = (message: UserMessage, isFromUser: boolean) => {
+    if (!isFromUser) return null;
+    
+    if (message.status === 'sending') {
+      return <Clock size={12} className="text-blue-300" />;
+    } else if (message.read_at) {
+      return <CheckCheck size={12} className="text-blue-400" />;
+    } else {
+      return <Check size={12} className="text-blue-300" />;
+    }
+  };
+
+  const formatMessageTime = (timestamp: string) => {
+    const messageDate = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    } else if (diffInMinutes < 1440) {
+      return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      return messageDate.toLocaleString([], { 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
     }
   };
 
@@ -358,32 +496,31 @@ const MessagingCenter: React.FC = () => {
           : 'bg-gray-100 text-gray-900'
       }`}>
         <p className="text-sm">{message.message}</p>
-        <p className={`text-xs mt-1 ${isFromUser ? 'text-blue-100' : 'text-gray-500'}`}>
-          {new Date(message.created_at).toLocaleString([], { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
-          {!isFromUser && !message.read_at && (
-            <span className="ml-2 text-xs">•</span>
-          )}
-        </p>
+        <div className={`flex items-center justify-between mt-2 ${isFromUser ? 'text-blue-100' : 'text-gray-500'}`}>
+          <span className="text-xs">
+            {formatMessageTime(message.created_at)}
+          </span>
+          <div className="flex items-center ml-2">
+            {getMessageStatus(message, isFromUser)}
+            {!isFromUser && !message.read_at && (
+              <span className="ml-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim() || !selectedConversation || !user) return;
+    if (!messageText.trim() || !selectedConversation || !user || isSending) return;
 
     const messageToSend = messageText.trim();
     const currentTime = new Date().toISOString();
+    setIsSending(true);
     
-    // Create optimistic message immediately
     const optimisticMessage: UserMessage = {
-      id: `temp-${Date.now()}-${Math.random()}`, // Temporary unique ID
+      id: `temp-${Date.now()}-${Math.random()}`,
       sender_id: user.id,
       recipient_id: selectedConversation.other_user_id,
       subject: 'Reply',
@@ -392,13 +529,13 @@ const MessagingCenter: React.FC = () => {
       created_at: currentTime,
       conversation_id: selectedConversation.messages[0]?.conversation_id || crypto.randomUUID(),
       related_property_id: null,
+      status: 'sending',
       sender_profile: {
         first_name: user.user_metadata?.first_name || 'You',
         last_name: user.user_metadata?.last_name || ''
       }
     };
 
-    // Immediately update selected conversation with optimistic message
     const updatedSelectedConversation = {
       ...selectedConversation,
       messages: [...selectedConversation.messages, optimisticMessage],
@@ -408,7 +545,6 @@ const MessagingCenter: React.FC = () => {
     
     setSelectedConversation(updatedSelectedConversation);
     
-    // Immediately update conversations list with optimistic message
     setConversations(prev => prev.map(conv => 
       conv.id === selectedConversation.id 
         ? {
@@ -420,7 +556,7 @@ const MessagingCenter: React.FC = () => {
         : conv
     ));
 
-    setMessageText(''); // Clear input after optimistic update
+    setMessageText('');
 
     try {
       const newMessage = {
@@ -439,16 +575,20 @@ const MessagingCenter: React.FC = () => {
 
       if (error) throw error;
 
-      // Replace optimistic message with real message
       const realMessage: UserMessage = {
         ...data,
+        status: 'sent',
         sender_profile: {
           first_name: user.user_metadata?.first_name || 'You',
           last_name: user.user_metadata?.last_name || ''
         }
       };
 
-      // Update selected conversation with real message
+      trackActivity('message_sent', {
+        recipient: selectedConversation.other_user_name,
+        message_content: messageToSend.substring(0, 50) + (messageToSend.length > 50 ? '...' : '')
+      });
+
       setSelectedConversation(prev => prev ? {
         ...prev,
         messages: prev.messages.map(msg => 
@@ -456,7 +596,6 @@ const MessagingCenter: React.FC = () => {
         )
       } : null);
 
-      // Update conversations list with real message
       setConversations(prev => prev.map(conv => 
         conv.id === selectedConversation.id 
           ? {
@@ -471,7 +610,6 @@ const MessagingCenter: React.FC = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Remove optimistic message on error and restore input
       setSelectedConversation(prev => prev ? {
         ...prev,
         messages: prev.messages.filter(msg => msg.id !== optimisticMessage.id),
@@ -490,7 +628,9 @@ const MessagingCenter: React.FC = () => {
           : conv
       ));
       
-      setMessageText(messageToSend); // Restore message text on error
+      setMessageText(messageToSend);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -510,13 +650,20 @@ const MessagingCenter: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
-        <div className="text-sm text-gray-600">
-          {conversations.length} conversations
+        <div className="flex items-center space-x-4">
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+            isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {isConnected ? <Wifi size={14} /> : <WifiOff size={14} />}
+            <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+          </div>
+          <div className="text-sm text-gray-600">
+            {conversations.length} conversations
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
-        {/* Conversations List */}
         <div className="space-y-4 overflow-y-auto">
           <h3 className="text-lg font-semibold text-gray-900">Conversations</h3>
           {conversations.length === 0 ? (
@@ -540,12 +687,10 @@ const MessagingCenter: React.FC = () => {
           )}
         </div>
 
-        {/* Chat Interface */}
-        <div className="lg:col-span-2 flex flex-col">
+        <div className="lg:col-span-2 flex flex-col h-full max-h-[600px]">
           {selectedConversation ? (
             <>
-              {/* Chat Header */}
-              <div className="bg-white border border-gray-200 rounded-t-lg p-4 border-b">
+              <div className="bg-white border border-gray-200 rounded-t-lg p-4 border-b flex-shrink-0">
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{selectedConversation.other_user_name}</h3>
@@ -566,18 +711,23 @@ const MessagingCenter: React.FC = () => {
                 </div>
               </div>
 
-              {/* Messages */}
-              <div className="flex-1 bg-white border-l border-r border-gray-200 p-4 overflow-y-auto">
+              <div 
+                ref={chatContainerRef} 
+                className="flex-1 bg-white border-l border-r border-gray-200 p-4 overflow-y-auto min-h-0"
+              >
                 {selectedConversation.messages && selectedConversation.messages.length > 0 ? (
-                  selectedConversation.messages
-                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-                    .map((message) => (
-                      <MessageBubble 
-                        key={message.id} 
-                        message={message} 
-                        isFromUser={message.sender_id === user?.id}
-                      />
-                    ))
+                  <>
+                    {selectedConversation.messages
+                      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                      .map((message) => (
+                        <MessageBubble 
+                          key={message.id} 
+                          message={message} 
+                          isFromUser={message.sender_id === user?.id}
+                        />
+                      ))}
+                    <div ref={messagesEndRef} />
+                  </>
                 ) : (
                   <div className="text-center py-8">
                     <MessageSquare size={32} className="mx-auto text-gray-400 mb-2" />
@@ -586,8 +736,7 @@ const MessagingCenter: React.FC = () => {
                 )}
               </div>
 
-              {/* Message Input */}
-              <div className="bg-white border border-gray-200 rounded-b-lg p-4 border-t">
+              <div className="bg-white border border-gray-200 rounded-b-lg p-4 border-t flex-shrink-0">
                 <form onSubmit={handleSendMessage} className="flex space-x-2">
                   <input
                     type="text"
@@ -598,10 +747,14 @@ const MessagingCenter: React.FC = () => {
                   />
                   <button
                     type="submit"
-                    disabled={!messageText.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    disabled={!messageText.trim() || isSending}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center"
                   >
-                    <Send size={16} />
+                    {isSending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Send size={16} />
+                    )}
                   </button>
                 </form>
               </div>
@@ -617,51 +770,8 @@ const MessagingCenter: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-yellow-100 rounded-full mr-4">
-              <Clock size={24} className="text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Unread Messages</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {conversations.reduce((sum, conv) => sum + conv.unread_count, 0)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-full mr-4">
-              <CheckCircle size={24} className="text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Conversations</p>
-              <p className="text-2xl font-bold text-gray-900">{conversations.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-full mr-4">
-              <MessageSquare size={24} className="text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Messages</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {conversations.reduce((sum, conv) => sum + conv.messages.length, 0)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default MessagingCenter; 
+export default MessagingCenter;

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart, MessageSquare, Eye, X } from 'lucide-react';
+import { MapPin, Users, TrendingUp, ChevronLeft, ChevronRight, Heart, MessageSquare, Eye, X, LogIn } from 'lucide-react';
 import { calculatePropertyMetrics, calculateDynamicCashFlow, MortgageParams } from '../utils/mortgageCalculations';
 import { PropertyFilters } from '../types/filters';
 import { Property } from '../types/property';
 import OptimizedImage from './OptimizedImage';
 import ContactAgentModal from './ContactAgentModal';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 
 type Unit = {
   id: string;
@@ -32,6 +33,7 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   onToggleSaved
 }) => {
   const navigate = useNavigate();
+  const { trackActivity } = useActivityTracker();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showImageSlideshow, setShowImageSlideshow] = useState(false);
@@ -115,6 +117,13 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
   };
 
   const handleCardClick = () => {
+    // Track property view activity
+    trackActivity('property_viewed', {
+      property_id: property.id,
+      property_title: property.property_title,
+      location: `${property.city}, ${property.province}`
+    });
+
     // If we have current filters, pass them all as query parameters
     if (currentFilters) {
       const searchParams = new URLSearchParams();
@@ -196,22 +205,35 @@ const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
               </div>
             </div>
 
-            {onToggleSaved && (
+            {/* Save button */}
+            {onToggleSaved ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleSaved(property.id);
                 }}
-                className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 z-10 ${
+                className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-200 z-30 ${
                   isSaved 
                     ? 'bg-red-500 hover:bg-red-600 text-white' 
                     : 'bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-600 hover:text-red-500'
                 }`}
+                title={isSaved ? 'Remove from saved properties' : 'Save property'}
               >
                 <Heart 
                   className="h-4 w-4" 
                   fill={isSaved ? 'currentColor' : 'none'}
                 />
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/auth');
+                }}
+                className="absolute top-2 right-2 p-2 bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-600 hover:text-blue-500 rounded-full transition-all duration-200 z-30"
+                title="Sign in to save properties"
+              >
+                <LogIn className="h-4 w-4" />
               </button>
             )}
 

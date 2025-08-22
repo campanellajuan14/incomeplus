@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_change_requests: {
+        Row: {
+          created_at: string
+          current_email: string
+          expires_at: string
+          id: string
+          is_verified: boolean
+          new_email: string
+          updated_at: string
+          user_id: string
+          verification_code: string
+        }
+        Insert: {
+          created_at?: string
+          current_email: string
+          expires_at: string
+          id?: string
+          is_verified?: boolean
+          new_email: string
+          updated_at?: string
+          user_id: string
+          verification_code: string
+        }
+        Update: {
+          created_at?: string
+          current_email?: string
+          expires_at?: string
+          id?: string
+          is_verified?: boolean
+          new_email?: string
+          updated_at?: string
+          user_id?: string
+          verification_code?: string
+        }
+        Relationships: []
+      }
+      email_verification_codes: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          new_email: string
+          user_id: string
+          verification_code: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          new_email: string
+          user_id: string
+          verification_code: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          new_email?: string
+          user_id?: string
+          verification_code?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string | null
@@ -554,9 +617,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_email_verification_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      get_user_email_change_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          current_email: string
+          new_email: string
+          is_verified: boolean
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
       validate_units_structure: {
         Args: Record<PropertyKey, never> | { units_json: Json }
         Returns: undefined
+      }
+      verify_email_change: {
+        Args: { verification_code_input: string; user_id_input: string }
+        Returns: Json
       }
     }
     Enums: {

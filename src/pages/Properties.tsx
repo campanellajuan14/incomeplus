@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
@@ -132,16 +133,22 @@ const Properties: React.FC = () => {
 
   const handleToggleSaved = async (propertyId: string) => {
     const wasSaved = isSaved(propertyId);
-    const result = await toggleSaved(propertyId);
+    const property = allProperties.find((p: Property) => p.id === propertyId);
+    
+    const result = await toggleSaved(
+      propertyId, 
+      property?.property_title,
+      property ? `${property.city}, ${property.province}` : undefined
+    );
     
     if (result.success) {
       if (wasSaved) {
-        console.log('Property removed from saved list', 'info');
+        toast.info('Property removed from saved list');
       } else {
-        console.log('Property saved successfully', 'success');
+        toast.success('Property saved successfully');
       }
     } else {
-      console.log(result.error || 'Failed to update saved status', 'error');
+      toast.error(result.error || 'Failed to update saved status');
     }
   };
 
@@ -343,7 +350,7 @@ const Properties: React.FC = () => {
                         dynamicMortgageParams={mortgageParams}
                         currentFilters={filters}
                         isSaved={isSaved(property.id)}
-                        onToggleSaved={handleToggleSaved}
+                        onToggleSaved={user ? handleToggleSaved : undefined}
                       />
                     );
                   })}

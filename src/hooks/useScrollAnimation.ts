@@ -68,11 +68,10 @@ export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
         y: 0,
         transition: {
           duration: 0.6,
-          ease: [0.22, 1, 0.36, 1], // Custom ease curve for smoother motion
           delay,
         },
       },
-    };
+    } as const;
   };
   
   return {

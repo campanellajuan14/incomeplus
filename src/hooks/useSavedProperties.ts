@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../context/AuthContext';
+import { useActivityTracker } from './useActivityTracker';
 
 export const useSavedProperties = () => {
   const { user } = useAuth();
+  const { trackActivity } = useActivityTracker();
   const [savedPropertyIds, setSavedPropertyIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export const useSavedProperties = () => {
   };
 
   // Save a property
-  const saveProperty = async (propertyId: string, notes?: string) => {
+  const saveProperty = async (propertyId: string, notes?: string, propertyTitle?: string, location?: string) => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
@@ -53,6 +55,14 @@ export const useSavedProperties = () => {
       }
 
       setSavedPropertyIds(prev => new Set([...prev, propertyId]));
+      
+      // Track the activity
+      trackActivity('property_saved', {
+        property_id: propertyId,
+        property_title: propertyTitle,
+        location: location
+      });
+      
       return { success: true };
     } catch (error) {
       console.error('Error saving property:', error);
@@ -89,11 +99,11 @@ export const useSavedProperties = () => {
   };
 
   // Toggle saved status
-  const toggleSaved = async (propertyId: string) => {
+  const toggleSaved = async (propertyId: string, propertyTitle?: string, location?: string) => {
     if (savedPropertyIds.has(propertyId)) {
       return await unsaveProperty(propertyId);
     } else {
-      return await saveProperty(propertyId);
+      return await saveProperty(propertyId, undefined, propertyTitle, location);
     }
   };
 

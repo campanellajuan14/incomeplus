@@ -6,6 +6,7 @@ import { supabase } from '../integrations/supabase/client';
 import { useGeocoding } from '../hooks/useGeocoding';
 import LoadingSpinner from '../components/LoadingSpinner';
 import OptimizedImage from '../components/OptimizedImage';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 import { 
   compressImages, 
   CompressedImage, 
@@ -68,6 +69,7 @@ const PropertyUpload: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { geocodeProperty, isGeocoding, geocodingError } = useGeocoding();
+  const { trackActivity } = useActivityTracker();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -531,6 +533,21 @@ const PropertyUpload: React.FC = () => {
       }
       
       setSuccess(editPropertyId ? 'Property updated successfully!' : 'Property added successfully!');
+      
+      // Track the activity
+      if (!editPropertyId) {
+        trackActivity('property_uploaded', {
+          property_id: insertedProperty.id,
+          property_title: property.property_title,
+          location: `${property.city}, ${property.province}`
+        });
+      } else {
+        trackActivity('property_updated', {
+          property_id: insertedProperty.id,
+          property_title: property.property_title,
+          location: `${property.city}, ${property.province}`
+        });
+      }
       
       // Redirect to property sheet after a brief delay
       setTimeout(() => {

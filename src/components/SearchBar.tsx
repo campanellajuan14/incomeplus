@@ -3,6 +3,7 @@ import { Search, Settings2, Grid3X3, Map } from 'lucide-react';
 import { PropertyFilters } from '../types/filters';
 import SearchInput from './filters/SearchInput';
 import AdvancedFiltersModal from './AdvancedFiltersModal';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 
 interface SearchBarProps {
   filters: PropertyFilters;
@@ -20,6 +21,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onViewModeChange
 }) => {
   const [isAdvancedModalOpen, setIsAdvancedModalOpen] = useState(false);
+  const { trackActivity } = useActivityTracker();
 
   const updateFilter = <K extends keyof PropertyFilters>(key: K, value: PropertyFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value });
@@ -27,6 +29,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleAdvancedFiltersChange = (newFilters: PropertyFilters) => {
     onFiltersChange(newFilters);
+    onSearch();
+    trackActivity('search_performed', {
+      search_query: newFilters.city || '',
+      location: newFilters.city || 'All locations'
+    });
   };
 
   return (

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, X, Menu, UserCircle, LogOut, LayoutDashboard, FileSpreadsheet, Settings, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -11,6 +12,7 @@ const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [userProfile, setUserProfile] = useState<{first_name?: string; last_name?: string} | null>(null);
   
   // Handle scroll effect
   useEffect(() => {
@@ -43,12 +45,54 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showUserMenu]);
 
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        setUserProfile(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
+
+        if (data) {
+          setUserProfile({
+            first_name: data.first_name || undefined,
+            last_name: data.last_name || undefined
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
   const handleSignOut = async (e: React.MouseEvent) => {
     e.preventDefault();
     await signOut();
   };
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
+  // Create display name from profile data or fallback to auth metadata
+  const getDisplayName = () => {
+    if (userProfile?.first_name || userProfile?.last_name) {
+      return `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim();
+    }
+    return user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
+  };
+
+  const userName = getDisplayName();
 
   return (
     <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${

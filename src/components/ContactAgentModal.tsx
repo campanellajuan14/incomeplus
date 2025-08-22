@@ -3,6 +3,7 @@ import { X, Send, User } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 
 interface ContactAgentModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface ContactAgentModalProps {
 
 const ContactAgentModal: React.FC<ContactAgentModalProps> = ({ isOpen, onClose, property }) => {
   const { user } = useAuth();
+  const { trackActivity } = useActivityTracker();
   const [subject, setSubject] = useState(`Inquiry about ${property.property_title}`);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +57,20 @@ const ContactAgentModal: React.FC<ContactAgentModalProps> = ({ isOpen, onClose, 
       // Reset form and close modal
       setMessage('');
       setSubject(`Inquiry about ${property.property_title}`);
+      
+      // Track both inquiry sent and message sent
+      trackActivity('inquiry_sent', {
+        property_id: property.id,
+        property_title: property.property_title,
+        recipient: property.agent_name
+      });
+      
+      trackActivity('message_sent', {
+        recipient: property.agent_name,
+        property_id: property.id,
+        message_content: message.substring(0, 50) + (message.length > 50 ? '...' : '')
+      });
+      
       onClose();
       
       // Show success message
