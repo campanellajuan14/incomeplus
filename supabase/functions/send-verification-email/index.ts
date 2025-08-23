@@ -57,21 +57,31 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("User not authenticated");
     }
 
-    // Verify current password by attempting to sign in with it
-    const passwordVerifyClient = createClient(
+    // Verify current password by creating a temporary client and signing in
+    const tempClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
     );
-    
-    const { error: passwordError } = await passwordVerifyClient.auth.signInWithPassword({
+
+    // Try to sign in with the provided password to verify it's correct
+    const { error: verifyError } = await tempClient.auth.signInWithPassword({
       email: user.email!,
       password: currentPassword
     });
 
-    if (passwordError) {
-      console.error("Password verification failed:", passwordError);
+    if (verifyError) {
+      console.error("Password verification failed:", verifyError);
       throw new Error("Invalid current password");
     }
+
+    // Clean up the temporary session
+    await tempClient.auth.signOut();
 
     // Check rate limiting - max 3 requests per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -121,7 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send verification email via Resend
     const emailResponse = await resend.emails.send({
-      from: "RealEstate Pro <noreply@resend.dev>",
+      from: "RealEstate Pro <onboarding@resend.dev>",
       to: [newEmail],
       subject: "Email Verification Code - RealEstate Pro",
       html: `
