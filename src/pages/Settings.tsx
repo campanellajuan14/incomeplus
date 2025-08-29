@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Lock, Eye, EyeOff } from 'lucide-react';
+import { Bell, Lock, Eye, EyeOff, Mail, User } from 'lucide-react';
 import { NotificationSettings } from '../types/dashboard';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmailVerificationModal from '../components/EmailVerificationModal';
+import { supabase, SUPABASE_URL_EXPORT } from '../integrations/supabase/client';
 
 const Settings: React.FC = () => {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'notifications' | 'security'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'security' | 'account'>('account');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -34,6 +36,14 @@ const Settings: React.FC = () => {
     new: false,
     confirm: false
   });
+
+  // Email change state
+  const [emailForm, setEmailForm] = useState({
+    newEmail: '',
+    currentPassword: ''
+  });
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [pendingNewEmail, setPendingNewEmail] = useState('');
 
   useEffect(() => {
     // TODO: Replace with actual API calls
@@ -104,6 +114,77 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!emailForm.newEmail || !emailForm.currentPassword) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (emailForm.newEmail === user?.email) {
+      alert('New email address must be different from current email');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailForm.newEmail)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(`${SUPABASE_URL_EXPORT}/functions/v1/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          newEmail: emailForm.newEmail,
+          currentPassword: emailForm.currentPassword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send verification email');
+      }
+
+      // Success! Show verification modal
+      setPendingNewEmail(emailForm.newEmail);
+      setShowEmailVerificationModal(true);
+      
+      // Clear the form
+      setEmailForm({
+        newEmail: '',
+        currentPassword: ''
+      });
+      
+    } catch (error: any) {
+      console.error('Error sending verification email:', error);
+      alert(error.message || 'Failed to send verification email. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEmailVerified = (newEmail: string) => {
+    // The email has been successfully updated
+    // The user object will be updated automatically by Supabase
+    alert(`Email address successfully updated to ${newEmail}!`);
+    setPendingNewEmail('');
+  };
+
   if (loading || isLoading) {
     return (
       <LoadingSpinner 
@@ -137,6 +218,17 @@ const Settings: React.FC = () => {
           {/* Tab Navigation */}
           <div className="flex space-x-1 border-b border-gray-200">
             <button
+              onClick={() => setActiveTab('account')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
+                activeTab === 'account'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <User size={16} className="inline mr-2" />
+              Account
+            </button>
+            <button
               onClick={() => setActiveTab('notifications')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg transition-colors ${
                 activeTab === 'notifications'
@@ -162,6 +254,84 @@ const Settings: React.FC = () => {
 
           {/* Tab Content */}
           <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+            {activeTab === 'account' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h3>
+                
+                {/* Current Email Display */}
+                <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center mb-2">
+                    <Mail className="w-5 h-5 text-gray-600 mr-2" />
+                    <span className="font-medium text-gray-900">Current Email Address</span>
+                  </div>
+                  <p className="text-gray-700 ml-7">{user?.email}</p>
+                </div>
+
+                {/* Email Change Form */}
+                <form onSubmit={handleChangeEmail} className="space-y-6">
+                  <div>
+                    <h4 className="text-md font-medium text-gray-900 mb-4">Change Email Address</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          New Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={emailForm.newEmail}
+                          onChange={(e) => setEmailForm({ ...emailForm, newEmail: e.target.value })}
+                          placeholder="Enter your new email address"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Current Password
+                        </label>
+                        <input
+                          type="password"
+                          value={emailForm.currentPassword}
+                          onChange={(e) => setEmailForm({ ...emailForm, currentPassword: e.target.value })}
+                          placeholder="Enter your current password to confirm"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          We need your current password to verify your identity before changing your email address.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+                      <div>
+                        <h5 className="font-medium text-blue-900 mb-1">Email Verification Process</h5>
+                        <p className="text-sm text-blue-800">
+                          After submitting this form, we'll send a 6-digit verification code to your new email address. 
+                          You'll need to enter this code to complete the email change process. The code will expire in 15 minutes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSaving || !emailForm.newEmail || !emailForm.currentPassword}
+                      className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+                    >
+                      <Mail size={16} className="mr-2" />
+                      {isSaving ? 'Sending Verification...' : 'Send Verification Code'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {activeTab === 'notifications' && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h3>
@@ -321,6 +491,14 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={showEmailVerificationModal}
+        onClose={() => setShowEmailVerificationModal(false)}
+        newEmail={pendingNewEmail}
+        onEmailVerified={handleEmailVerified}
+      />
     </div>
   );
 };

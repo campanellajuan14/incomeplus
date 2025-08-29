@@ -131,9 +131,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send verification email via Resend
     const emailResponse = await resend.emails.send({
-      from: "RealEstate Pro <onboarding@resend.dev>",
+      from: "Income Plus Properties <noreply@incomeplusproperties.ca>",
       to: [newEmail],
-      subject: "Email Verification Code - RealEstate Pro",
+      subject: "Email Verification Code - Income Plus Properties",
       html: `
         <!DOCTYPE html>
         <html>
@@ -148,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Header -->
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
                 <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">Email Verification</h1>
-                <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0; font-size: 16px;">RealEstate Pro</p>
+                <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0; font-size: 16px;">Income Plus Properties</p>
               </div>
               
               <!-- Content -->
@@ -171,14 +171,14 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
                 
                 <p style="color: #4a5568; margin: 30px 0 0; font-size: 14px; line-height: 1.6;">
-                  Enter this code in your RealEstate Pro account to complete the email change process.
+                  Enter this code in your Income Plus Properties account to complete the email change process.
                 </p>
               </div>
               
               <!-- Footer -->
               <div style="background: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
                 <p style="color: #718096; margin: 0; font-size: 14px;">
-                  © 2024 RealEstate Pro. All rights reserved.
+                  © 2024 Income Plus Properties. All rights reserved.
                 </p>
                 <p style="color: #a0aec0; margin: 10px 0 0; font-size: 12px;">
                   This is an automated message. Please do not reply to this email.
