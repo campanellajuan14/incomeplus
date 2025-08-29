@@ -22,7 +22,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // Get the authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
+
+    // Create a client for user operations
+    const userClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
@@ -33,12 +40,18 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
+    userClient.auth.setSession({
+      access_token: authHeader.replace("Bearer ", ""),
+      refresh_token: "",
+    });
+
     const { newEmail, currentPassword }: VerificationEmailRequest = await req.json();
 
-    // Get the authorization header
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header");
+    // Get user from authenticated client
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      console.error("User error:", userError);
+      throw new Error("User not authenticated");
     }
 
     // Create client with service role for database operations
@@ -46,16 +59,6 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
-
-    // Extract JWT token and verify it
-    const jwt = authHeader.replace("Bearer ", "");
-    
-    // Get user from JWT token
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
-    if (userError || !user) {
-      console.error("User error:", userError);
-      throw new Error("User not authenticated");
-    }
 
     // Verify current password by creating a temporary client and signing in
     const tempClient = createClient(
@@ -80,8 +83,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid current password");
     }
 
-    // Clean up the temporary session
+    // Clean up the sessions
     await tempClient.auth.signOut();
+    await userClient.auth.signOut();
 
     // Check rate limiting - max 3 requests per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
