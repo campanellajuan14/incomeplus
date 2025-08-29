@@ -131,7 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send verification email via Resend
     const emailResponse = await resend.emails.send({
-      from: "Income Plus Properties <noreply@incomeplusproperties.ca>",
+      from: "<noreply@incomeplusproperties.ca>",
       to: [newEmail],
       subject: "Email Verification Code - Income Plus Properties",
       html: `
