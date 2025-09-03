@@ -126,11 +126,7 @@ function AppRoutes() {
       />
       <Route 
         path="/properties" 
-        element={
-          <ProtectedRoute>
-            <Properties />
-          </ProtectedRoute>
-        } 
+        element={<Properties />} 
       />
       <Route 
         path="/dashboard" 
@@ -166,11 +162,7 @@ function AppRoutes() {
       />
       <Route 
         path="/properties/:id" 
-        element={
-          <ProtectedRoute>
-            <PropertyDetail />
-          </ProtectedRoute>
-        } 
+        element={<PropertyDetail />} 
       />
       
       {/* Admin Routes */}

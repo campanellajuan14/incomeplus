@@ -125,12 +125,19 @@ const Properties: React.FC = () => {
     handleSearch
   } = usePropertySearch(allProperties, urlFilters);
 
+  // Initialize saved properties functionality only for authenticated users
+  const savedPropertiesHook = user ? useSavedProperties() : null;
   const {
-    isSaved,
-    toggleSaved
-  } = useSavedProperties();
+    isSaved = () => false,
+    toggleSaved = async () => ({ success: false, error: 'Login required' })
+  } = savedPropertiesHook || {};
 
   const handleToggleSaved = async (propertyId: string) => {
+    if (!user) {
+      console.log('Please log in to save properties', 'info');
+      return;
+    }
+    
     const wasSaved = isSaved(propertyId);
     const result = await toggleSaved(propertyId);
     
@@ -346,8 +353,8 @@ const Properties: React.FC = () => {
                         property={property}
                         dynamicMortgageParams={mortgageParams}
                         currentFilters={filters}
-                        isSaved={isSaved(property.id)}
-                        onToggleSaved={handleToggleSaved}
+                        isSaved={user ? isSaved(property.id) : false}
+                        onToggleSaved={user ? handleToggleSaved : undefined}
                       />
                     );
                   })}

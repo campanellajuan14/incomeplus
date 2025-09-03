@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MapPin, Users, TrendingUp, Home, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { calculatePropertyMetrics, MortgageParams } from '../utils/mortgageCalculations';
@@ -58,7 +57,6 @@ const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const { geocodeProperty, isGeocoding } = useGeocoding();
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,11 +65,6 @@ const PropertyDetail: React.FC = () => {
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
     if (id && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
       fetchProperty(id);
@@ -79,7 +72,7 @@ const PropertyDetail: React.FC = () => {
       setError('Property ID is required');
       setIsLoading(false);
     }
-  }, [id, user, navigate]);
+  }, [id]);
 
   const fetchProperty = async (propertyId: string) => {
     try {
@@ -90,11 +83,15 @@ const PropertyDetail: React.FC = () => {
         .from('properties')
         .select('*')
         .eq('id', propertyId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase error:', error);
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('Property not found or not accessible');
       }
 
       if (data) {

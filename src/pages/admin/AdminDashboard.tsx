@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Home, Shield, CheckCircle, XCircle, Settings } from 'lucide-react';
+import { Users, Home, CheckCircle, XCircle, Settings } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 
 interface Property {
