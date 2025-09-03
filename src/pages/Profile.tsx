@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save } from 'lucide-react';
+import { User, Save, Edit } from 'lucide-react';
 import { UserProfile } from '../types/dashboard';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmailChangeModal from '../components/EmailChangeModal';
+import { toast } from 'sonner';
 
 const Profile: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading, refetchProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   
   // Profile form state
   const [profile, setProfile] = useState<UserProfile>({
     id: '',
     user_id: '',
-    first_name: '',
-    last_name: '',
+    username: '',
     phone: '',
     company: '',
     bio: '',
@@ -25,35 +28,51 @@ const Profile: React.FC = () => {
   });
 
   useEffect(() => {
-    // TODO: Replace with actual API calls
-    setTimeout(() => {
-      if (user) {
-        setProfile(prev => ({
-          ...prev,
-          user_id: user.id,
-          first_name: user.user_metadata?.name?.split(' ')[0] || '',
-          last_name: user.user_metadata?.name?.split(' ')[1] || ''
-        }));
-      }
+    if (userProfile) {
+      setProfile(userProfile);
       setIsLoading(false);
-    }, 1000);
-  }, [user]);
+    } else if (!loading && user) {
+      // If user exists but no profile, create empty profile structure
+      setProfile(prev => ({
+        ...prev,
+        user_id: user.id,
+        username: user.user_metadata?.username || ''
+      }));
+      setIsLoading(false);
+    }
+  }, [userProfile, user, loading]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     
     try {
-      // TODO: Implement API call to save profile
-      console.log('Saving profile:', profile);
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          username: profile.username || '',
+          phone: profile.phone,
+          company: profile.company,
+          bio: profile.bio,
+          email_notifications: profile.email_notifications,
+          sms_notifications: profile.sms_notifications,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      // Refetch the profile to get the updated data
+      await refetchProfile();
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Error saving profile. Please try again.');
+      toast.error('Error saving profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -98,42 +117,39 @@ const Profile: React.FC = () => {
 
           <div className="p-6">
             <form onSubmit={handleSaveProfile} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    value={profile.first_name || ''}
-                    onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    value={profile.last_name || ''}
-                    onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Username
                 </label>
+                <input
+                  type="text"
+                  value={profile.username || ''}
+                  onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your username"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Email Address
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
                 <input
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">Email cannot be changed from here</p>
+                <button
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(true)}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Edit size={16} className="mr-2" />
+                  Change
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -187,6 +203,12 @@ const Profile: React.FC = () => {
             </form>
           </div>
         </div>
+
+        <EmailChangeModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          currentEmail={user?.email || ''}
+        />
       </div>
     </div>
   );

@@ -31,12 +31,12 @@ const Auth: React.FC = () => {
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
-    name: ''
+    username: ''
   });
   const [errors, setErrors] = useState({
     email: '',
     password: '',
-    name: '',
+    username: '',
     form: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +54,7 @@ const Auth: React.FC = () => {
     const newErrors = {
       email: '',
       password: '',
-      name: '',
+      username: '',
       form: ''
     };
     let isValid = true;
@@ -77,9 +77,12 @@ const Auth: React.FC = () => {
       isValid = false;
     }
 
-    // Name validation (only for signup)
-    if (formType === 'signup' && !formValues.name) {
-      newErrors.name = 'Name is required';
+    // Username validation (only for signup)
+    if (formType === 'signup' && !formValues.username) {
+      newErrors.username = 'Username is required';
+      isValid = false;
+    } else if (formType === 'signup' && formValues.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
       isValid = false;
     }
 
@@ -118,7 +121,7 @@ const Auth: React.FC = () => {
         await signIn(formValues.email, formValues.password);
         // Redirect will happen in useEffect when user state updates
       } else {
-        await signUp(formValues.email, formValues.password, formValues.name);
+        await signUp(formValues.email, formValues.password, formValues.username);
         // Show success message for signup
         alert('Registration successful! Please check your email to confirm your account.');
       }
@@ -139,7 +142,7 @@ const Auth: React.FC = () => {
     setErrors({
       email: '',
       password: '',
-      name: '',
+      username: '',
       form: ''
     });
   };
@@ -171,15 +174,15 @@ const Auth: React.FC = () => {
                 <User className="absolute top-3 left-3 text-gray-400" size={20} />
                 <input
                   type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formValues.name}
+                  name="username"
+                  placeholder="Username"
+                  value={formValues.username}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className={`w-full pl-10 pr-4 py-3 border ${errors.name ? 'border-error-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500`}
+                  className={`w-full pl-10 pr-4 py-3 border ${errors.username ? 'border-error-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 />
               </div>
-              {errors.name && <p className="mt-1 text-sm text-error-500">{errors.name}</p>}
+              {errors.username && <p className="mt-1 text-sm text-error-500">{errors.username}</p>}
             </div>
           )}
           

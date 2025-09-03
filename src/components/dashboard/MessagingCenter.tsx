@@ -14,8 +14,7 @@ interface UserMessage {
   related_property_id: string | null;
   conversation_id: string;
   sender_profile?: {
-    first_name?: string;
-    last_name?: string;
+    username?: string;
   };
 }
 
@@ -49,21 +48,19 @@ const MessagingCenter: React.FC = () => {
           return;
         }
 
-        // Load sender profile
+        // Load sender profile using secure function
         const { data: profiles } = await supabase
-          .from('user_profiles')
-          .select('first_name, last_name')
-          .eq('user_id', newMessage.sender_id)
+          .rpc('get_minimal_user_info_for_messaging', { 
+            target_user_id: newMessage.sender_id 
+          })
           .maybeSingle();
 
         const messageWithProfile: UserMessage = {
           ...newMessage,
           sender_profile: profiles ? { 
-            first_name: profiles.first_name || undefined, 
-            last_name: profiles.last_name || undefined 
+            username: profiles.username || undefined
           } : { 
-            first_name: 'Unknown', 
-            last_name: 'User' 
+            username: 'Unknown User'
           }
         };
 
@@ -101,7 +98,7 @@ const MessagingCenter: React.FC = () => {
             const newConversation: Conversation = {
               id: otherUserId,
               other_user_id: otherUserId,
-              other_user_name: `${senderProfile?.first_name || ''} ${senderProfile?.last_name || ''}`.trim() || 'Unknown User',
+              other_user_name: senderProfile?.username || 'Unknown User',
               last_message: newMessage.message,
               last_message_at: newMessage.created_at,
               unread_count: 1,
@@ -222,11 +219,23 @@ const MessagingCenter: React.FC = () => {
         messages.map(msg => msg.sender_id === user.id ? msg.recipient_id : msg.sender_id)
       ));
 
-      // Fetch user profiles for these users
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('user_id, first_name, last_name')
-        .in('user_id', userIds);
+      // Fetch user profiles for these users using secure method
+      const profilePromises = userIds.map(async (userId) => {
+        try {
+          const { data } = await supabase
+            .rpc('get_minimal_user_info_for_messaging', { 
+              target_user_id: userId 
+            })
+            .maybeSingle();
+          return data;
+        } catch (error) {
+          console.warn(`Could not fetch profile for user ${userId}:`, error);
+          return null;
+        }
+      });
+      
+      const profileResults = await Promise.all(profilePromises);
+      const profiles = profileResults.filter(p => p !== null);
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
@@ -238,7 +247,7 @@ const MessagingCenter: React.FC = () => {
         const otherUserProfile = profileMap.get(otherUserId);
         const otherUserName = message.sender_id === user.id 
           ? 'You' 
-          : `${otherUserProfile?.first_name || ''} ${otherUserProfile?.last_name || ''}`.trim() || 'Unknown User';
+          : otherUserProfile?.username || 'Unknown User';
 
         if (!conversationMap.has(otherUserId)) {
           conversationMap.set(otherUserId, {
@@ -393,8 +402,7 @@ const MessagingCenter: React.FC = () => {
       conversation_id: selectedConversation.messages[0]?.conversation_id || crypto.randomUUID(),
       related_property_id: null,
       sender_profile: {
-        first_name: user.user_metadata?.first_name || 'You',
-        last_name: user.user_metadata?.last_name || ''
+        username: user.user_metadata?.username || 'You'
       }
     };
 
@@ -443,8 +451,7 @@ const MessagingCenter: React.FC = () => {
       const realMessage: UserMessage = {
         ...data,
         sender_profile: {
-          first_name: user.user_metadata?.first_name || 'You',
-          last_name: user.user_metadata?.last_name || ''
+          username: user.user_metadata?.username || 'You'
         }
       };
 

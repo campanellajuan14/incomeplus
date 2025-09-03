@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   
@@ -48,7 +48,7 @@ const Header: React.FC = () => {
     await signOut();
   };
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
+  const userName = userProfile?.username || user?.user_metadata?.username || user?.email?.split('@')[0] || "User";
 
   return (
     <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${

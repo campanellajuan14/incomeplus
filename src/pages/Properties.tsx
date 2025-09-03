@@ -159,7 +159,7 @@ const Properties: React.FC = () => {
   });
 
   useEffect(() => {
-    if (user && !hasFetchedRef.current) {
+    if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
       fetchProperties(true); // Reset to first page
     }
@@ -187,11 +187,11 @@ const Properties: React.FC = () => {
       const from = pageToFetch * PROPERTIES_PER_PAGE;
       const to = from + PROPERTIES_PER_PAGE - 1;
 
-      const { data, error, count } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
+      // Use the appropriate function based on user authentication
+      const functionName = user ? 'get_complete_property_listings' : 'get_public_complete_property_listings';
+      
+      const { data, error } = await supabase
+        .rpc(functionName);
 
       if (error) {
         console.error('Supabase error:', error);
@@ -199,7 +199,11 @@ const Properties: React.FC = () => {
       }
 
       if (data && Array.isArray(data)) {
-        const transformedProperties: Property[] = data.map(item => ({
+        // Apply pagination to the function results since RPC doesn't support range
+        const paginatedData = data.slice(from, to + 1);
+        const totalCount = data.length;
+        
+        const transformedProperties: Property[] = paginatedData.map((item: any) => ({
           id: item.id,
           property_title: item.property_title,
           address: item.address,
@@ -228,7 +232,7 @@ const Properties: React.FC = () => {
           maintenance: Number(item.maintenance) || 0,
           management_fees: Number(item.management_fees) || 0,
           miscellaneous: Number(item.miscellaneous) || 0,
-          down_payment_type: item.down_payment_type as 'Percent' | 'Fixed' || 'Percent',
+          down_payment_type: (item.down_payment_type as 'Percent' | 'Fixed') || 'Percent',
           down_payment_amount: Number(item.down_payment_amount) || 20,
           amortization_period: Number(item.amortization_period) || 25,
           mortgage_rate: Number(item.mortgage_rate) || 4.0,
@@ -239,7 +243,7 @@ const Properties: React.FC = () => {
           created_at: item.created_at,
           latitude: item.latitude,
           longitude: item.longitude,
-          status: item.status as 'active' | 'under_contract' | 'sold' || 'active',
+          status: (item.status as 'active' | 'under_contract' | 'sold') || 'active',
           user_id: item.user_id
         }));
 
@@ -252,7 +256,7 @@ const Properties: React.FC = () => {
         // Update pagination state
         setCurrentPage(pageToFetch);
         const totalFetched = resetPagination ? transformedProperties.length : allProperties.length + transformedProperties.length;
-        setHasMore(count ? totalFetched < count : transformedProperties.length === PROPERTIES_PER_PAGE);
+        setHasMore(totalFetched < totalCount && transformedProperties.length === PROPERTIES_PER_PAGE);
         
         // Geocode properties in background if they're missing coordinates
         geocodePropertiesInBackground(transformedProperties).catch(err => {

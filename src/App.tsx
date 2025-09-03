@@ -12,7 +12,15 @@ import PropertyUpload from './pages/PropertyUpload';
 import PropertyDetail from './pages/PropertyDetail';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminProperties from './pages/admin/AdminProperties';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminLayout from './components/admin/AdminLayout';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AdminProvider, useAdmin } from './context/AdminContext';
 import ScrollIndicator from './components/ScrollIndicator';
 import ScrollToTop from './components/ScrollToTop';
 import SmoothScroll from './components/SmoothScroll';
@@ -55,6 +63,27 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (user) {
     return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Admin Route component that redirects to admin login if not admin
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { adminUser, loading } = useAdmin();
+  
+  if (loading) {
+    return (
+      <LoadingSpinner 
+        isVisible={loading}
+        message="Verifying admin access..."
+        variant="overlay"
+      />
+    );
+  }
+  
+  if (!adminUser) {
+    return <Navigate to="/admin" replace />;
   }
   
   return <>{children}</>;
@@ -143,6 +172,59 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLogin />} />
+      <Route 
+        path="/admin/dashboard" 
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/users" 
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/properties" 
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminProperties />
+            </AdminLayout>
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/analytics" 
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminAnalytics />
+            </AdminLayout>
+          </AdminRoute>
+        } 
+      />
+      <Route 
+        path="/admin/settings" 
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminSettings />
+            </AdminLayout>
+          </AdminRoute>
+        } 
+      />
     </Routes>
   );
 }
@@ -150,21 +232,24 @@ function AppRoutes() {
 function AppContent() {
   const location = useLocation();
   const isPropertiesPage = location.pathname === '/properties';
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <SmoothScroll offset={80}>
       <div className="min-h-screen bg-gray-50">
         <ScrollIndicator color="#3b82f6" height={3} position="top" />
-        <Header />
+        {!isAdminPage && <Header />}
         <AppRoutes />
-        <Footer />
-        <ScrollToTop 
-          size="md" 
-          bottom={30} 
-          right={30} 
-          showAfter={400} 
-          showProgress={!isPropertiesPage}
-        />
+        {!isAdminPage && <Footer />}
+        {!isAdminPage && (
+          <ScrollToTop 
+            size="md" 
+            bottom={30} 
+            right={30} 
+            showAfter={400} 
+            showProgress={!isPropertiesPage}
+          />
+        )}
       </div>
     </SmoothScroll>
   );
@@ -174,8 +259,10 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
-        <Toaster position="top-right" />
+        <AdminProvider>
+          <AppContent />
+          <Toaster position="top-right" />
+        </AdminProvider>
       </AuthProvider>
     </Router>
   );

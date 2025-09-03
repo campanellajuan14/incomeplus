@@ -1,1 +1,28 @@
 project_id = "iklirbbiyumwofjyslqw"
+
+[functions.geocode-property]
+verify_jwt = true
+
+[functions.get-maps-key]
+verify_jwt = true
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.verify-email-change]
+verify_jwt = true
+
+[functions.admin-users]
+verify_jwt = true
+
+[functions.admin-properties]
+verify_jwt = true
+
+[functions.admin-analytics]
+verify_jwt = true
+
+[functions.admin-settings]
+verify_jwt = true
+
+[functions.admin-brokerages]
+verify_jwt = true

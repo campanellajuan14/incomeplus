@@ -91,10 +91,11 @@ export type ActivityType =
 
 // User Profile
 export interface UserProfile {
-  id: string;
+  id?: string;
   user_id: string;
-  first_name?: string;
-  last_name?: string;
+  username?: string;
+  user_type?: string;
+  account_status?: string;
   phone?: string;
   company?: string;
   bio?: string;
@@ -237,8 +238,7 @@ export interface IncomeForm {
 }
 
 export interface ProfileForm {
-  first_name?: string;
-  last_name?: string;
+  username?: string;
   phone?: string;
   company?: string;
   bio?: string;
